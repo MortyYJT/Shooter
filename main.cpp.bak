@@ -1,0 +1,586 @@
+#include "splashkit.h"
+#include "player/player.hpp"
+#include "weapon/weapon_base.hpp"
+#include "enemy/enemy_base.hpp"
+#include "enemy/slime/slime.hpp"
+#include "enemy/enemy_spawn.hpp"
+#include "coin.hpp"
+#include <memory> // for std::unique_ptr
+#include <vector>
+#include <string>
+int money = 0; // Player's total money
+player_data player; // Global player instance
+int camera_shake_timer = 0; // Screen shake timer
+int wave = 1; // Current wave number
+bool wave_in_progress = true; // Whether current wave is active
+int wave_clear_timer = 0; // Timer for wave-clear delay
+const int wave_clear_delay = 360; // Frames between waves
+std::vector<Coin> coins; // Active coin objects
+int main()
+{
+    // --- Game initialization ---
+    load_font("arial", "C:/Windows/Fonts/arial.ttf"); // Load font (Windows path)
+    int screen_w = 1600, screen_h = 1200;
+    open_window("Shooter - Enemy Test", screen_w, screen_h);
+    hide_mouse();
+    load_music("bgm", "sound/bgm/bgm_1.mp3");
+    play_music("bgm", -1);
+    // --- Background setup ---
+    load_bitmap("background_0", "image/background/background_0.png");
+    bitmap background = bitmap_named("background_0");
+    // --- Player initialization ---
+    player.player_x = screen_w / 2.0;
+    player.player_y = screen_h / 2.0;
+    player.player_speed = 2;
+    load_player(player);
+    // Load block frames here (overlay), ensure params
+    load_bitmap("player_block_0", "../image/player/player_block/player_block_0.png");
+    load_bitmap("player_block_1", "../image/player/player_block/player_block_1.png");
+    load_bitmap("player_block_2", "../image/player/player_block/player_block_2.png");
+    load_bitmap("player_block_3", "../image/player/player_block/player_block_3.png");
+    player.block_frames[0] = bitmap_named("player_block_0");
+    player.block_frames[1] = bitmap_named("player_block_1");
+    player.block_frames[2] = bitmap_named("player_block_2");
+    player.block_frames[3] = bitmap_named("player_block_3");
+    player.block_duration = 20;
+    player.block_interval = 5;
+    // --- Weapon system setup ---
+    int current_weapon = 0; // active weapon index
+    std::vector<std::unique_ptr<WeaponBase>> weapons;
+    auto ak = std::make_unique<AK>();
+    ak->load_assets();
+    weapons.push_back(std::move(ak));
+    auto pistol = std::make_unique<Pistol>();
+    pistol->load_assets();
+    weapons.push_back(std::move(pistol));
+    // Flags for purchased weapons
+    bool has_shotgun = false, has_awp = false, has_gatling = false, has_kelber = false;
+    // Shop state
+    bool shop_open = false;
+    struct ShopItem
+    {
+        std::string name;
+        std::string image_key;
+        std::string image_path;
+        int price;
+        std::string dmg;
+        std::string rof;
+        int type;
+        bool unlocked;
+    }; // type: 2=Shotgun,3=AWP,4=Gatling,5=Kelber
+    std::vector<ShopItem> shop_items = {
+        {"Shotgun", "shotgun_img", "../image/weapon/Shotgun.png", 80, "Dmg:25x8", "ROF:28f", 2, false},
+        {"AWP", "awp_img", "../image/weapon/AWP.png", 120, "Dmg:300", "ROF:90f", 3, false},
+        {"Gatling", "gatling_img", "../image/weapon/Gatling.png", 150, "Dmg:40", "ROF:4f", 4, false},
+        {"Kelber", "kelber_img", "../image/weapon/Kleber.png", 200, "Dmg:400x20", "ROF:120f", 5, false}
+    };
+    // Preload images for shop cards
+    for (auto &it : shop_items)
+        load_bitmap(it.image_key, it.image_path);
+    // Drag & drop state
+    bool dragging = false;
+    int drag_index = -1; // index into shop_items
+    double drag_x = 0, drag_y = 0;
+    bool mouse_prev_down = false;             // for detecting mouse release
+    bool suppress_drag_until_release = false; // after unlocking, require a new click
+    // --- Enemy container ---
+    std::vector<std::unique_ptr<EnemyBase>> enemies;
+    // --- Post-wave coin attract timer ---
+    int coin_suck_timer = 0; // frames of strong attraction after wave end
+    bool last_wave_flag = wave_in_progress;
+    // --- Main game loop ---
+    while (!quit_requested())
+    {
+        hide_mouse(); // Ensure mouse stays hidden
+        process_events(); // Handle input and events
+        // --- Weapon switching (1..2 only) --- (disabled while in shop)
+        if (!shop_open)
+        {
+            if (key_typed(NUM_1_KEY) && weapons.size() > 0)
+                current_weapon = 0;
+            if (key_typed(NUM_2_KEY) && weapons.size() > 1)
+                current_weapon = 1;
+        }
+        if (key_typed(ESCAPE_KEY) && !shop_open)
+            break;
+        // --- Game logic when player is alive ---
+        if (player.alive)
+        {
+            // Open shop when wave cleared and coin suck finished
+            if (!wave_in_progress && !shop_open && coin_suck_timer == 0)
+            {
+                shop_open = true;
+            }
+            if (shop_open)
+            {
+                // Mouse-based purchase + equip to slots 1/2 via drag or click-to-slot
+                // Start drag on mousedown over a card
+                bool mouse_now_down = mouse_down(LEFT_BUTTON);
+                bool mouse_released_now = (!mouse_now_down && mouse_prev_down);
+                if (mouse_now_down && !dragging)
+                {
+                    // determine which card under mouse
+                    double mx = mouse_x(), my = mouse_y();
+                    // Layout params
+                    double start_x = 300, start_y = 230, gap = 220, card_w = 200, card_h = 220;
+                    for (int i = 0; i < (int)shop_items.size(); ++i)
+                    {
+                        double cx = start_x + i * gap;
+                        double cy = start_y;
+                        if (mx >= cx && mx <= cx + card_w && my >= cy && my <= cy + card_h)
+                        {
+                            // If locked: on first press, try to unlock; do not start dragging yet
+                            if (!shop_items[i].unlocked)
+                            {
+                                if (!mouse_prev_down && money >= shop_items[i].price)
+                                {
+                                    money -= shop_items[i].price;
+                                    shop_items[i].unlocked = true;
+                                }
+                                // require a new click to start dragging
+                            }
+                            else
+                            {
+                                // Already unlocked: start dragging
+                                drag_index = i;
+                                dragging = true;
+                                drag_x = mx;
+                                drag_y = my;
+                            }
+                            break;
+                        }
+                    }
+                }
+                if (dragging)
+                {
+                    drag_x = mouse_x();
+                    drag_y = mouse_y();
+                    if (mouse_released_now)
+                    {
+                        suppress_drag_until_release = false;
+                        // Drop over slots area
+                        double slot_y = 560;
+                        double slot_w = 240;
+                        double slot_h = 200;
+                        double slot_x1 = 380;
+                        double slot_x2 = 760;
+                        int target_slot = -1;
+                        if (drag_x >= slot_x1 && drag_x <= slot_x1 + slot_w && drag_y >= slot_y && drag_y <= slot_y + slot_h)
+                            target_slot = 0;
+                        if (drag_x >= slot_x2 && drag_x <= slot_x2 + slot_w && drag_y >= slot_y && drag_y <= slot_y + slot_h)
+                            target_slot = 1;
+                        if (target_slot != -1 && drag_index >= 0)
+                        {
+                            auto &it = shop_items[drag_index];
+                            // Only allow dragging already-unlocked items
+                            if (it.unlocked)
+                            {
+                                std::unique_ptr<WeaponBase> nw;
+                                if (it.type == 2)
+                                {
+                                    nw = std::make_unique<Shotgun>();
+                                }
+                                else if (it.type == 3)
+                                {
+                                    nw = std::make_unique<AWP>();
+                                }
+                                else if (it.type == 4)
+                                {
+                                    nw = std::make_unique<Gatling>();
+                                }
+                                else if (it.type == 5)
+                                {
+                                    nw = std::make_unique<Kelber>();
+                                }
+                                if (nw)
+                                {
+                                    nw->load_assets();
+                                    if (weapons.size() < 2)
+                                        weapons.resize(2);
+                                    // Prevent duplicate type in the other slot
+                                    int other = target_slot == 0 ? 1 : 0;
+                                    bool same_type = false;
+                                    if (weapons.size() > other && weapons[other])
+                                    {
+                                        if ((it.type == 2 && dynamic_cast<Shotgun *>(weapons[other].get())) ||
+                                            (it.type == 3 && dynamic_cast<AWP *>(weapons[other].get())) ||
+                                            (it.type == 4 && dynamic_cast<Gatling *>(weapons[other].get())) ||
+                                            (it.type == 5 && dynamic_cast<Kelber *>(weapons[other].get())))
+                                            same_type = true;
+                                    }
+                                    if (!same_type)
+                                    {
+                                        weapons[target_slot] = std::move(nw);
+                                        current_weapon = target_slot;
+                                    }
+                                }
+                            }
+                        }
+                        dragging = false;
+                        drag_index = -1;
+                    }
+                }
+                if (key_typed(ESCAPE_KEY) || key_typed(SPACE_KEY) || key_typed(RETURN_KEY))
+                {
+                    shop_open = false;
+                    wave++;
+                    wave_in_progress = true;
+                }
+            }
+            // Handle block trigger (Space) - no backstep here; only on successful block
+            if (key_typed(SPACE_KEY) && !player.blocking && player.knockback_timer <= 0)
+            {
+                player.blocking = true;
+                player.block_timer = player.block_duration;
+                player.block_frame = 0;
+            }
+            // Update player: freeze normal control while blocking
+            if (!shop_open && !player.blocking)
+            {
+                // Apply Gatling modifiers: slower move, dash disabled
+                bool is_gatling = false;
+                if (current_weapon >= 0 && current_weapon < (int)weapons.size())
+                {
+                    // RTTI check
+                    if (dynamic_cast<Gatling *>(weapons[current_weapon].get()) != nullptr)
+                        is_gatling = true;
+                }
+                player.dash_disabled = is_gatling;
+                player.player_speed = is_gatling ? 1.2 : 2.0;
+                update_player(player);
+            }
+            else
+            {
+                // Update only block animation timers
+                player.block_timer--;
+                if (player.block_timer <= 0)
+                {
+                    player.blocking = false;
+                    player.block_frame = 0;
+                }
+                else if ((player.block_duration - player.block_timer) % player.block_interval == 0)
+                {
+                    player.block_frame = (player.block_frame + 1) % 4;
+                }
+            }
+            if (!shop_open)
+                weapons[current_weapon]->update(player);
+            // Update all enemies
+            if (!shop_open)
+                for (auto &e : enemies)
+                    e->update(player, weapons[current_weapon]->bullets());
+            // --- Wave control ---
+            if (wave_in_progress && !shop_open)
+            {
+                spawn_enemies(enemies, wave, wave_in_progress);
+                if (wave_in_progress)
+                    wave_clear_timer = wave_clear_delay;
+            }
+            else
+            {
+                if (!shop_open && wave_clear_timer > 0)
+                    wave_clear_timer--;
+                else if (!shop_open)
+                {
+                    wave++;
+                    wave_in_progress = true;
+                    spawn_enemies(enemies, wave, wave_in_progress);
+                }
+            }
+        }
+        // --- Drawing section ---
+        double shake_x = 0, shake_y = 0;
+        if (camera_shake_timer > 0 && !shop_open)
+        {
+            shake_x = rnd(-6, 6);
+            shake_y = rnd(-6, 6);
+            camera_shake_timer--;
+        }
+        draw_bitmap(background, shake_x, shake_y);
+        // --- Player drawing ---
+        if (!player.blocking)
+        {
+            // damage flicker when not blocking
+            if (player.damage_cooldown > 0)
+            {
+                if ((player.damage_cooldown / 5) % 2 == 0)
+                    draw_player(player);
+            }
+            else
+            {
+                draw_player(player);
+            }
+        }
+        // --- Draw current weapon and bullets --- (hidden while blocking or shop open)
+        if (!player.blocking && !shop_open)
+            weapons[current_weapon]->draw(player);
+        // --- Draw all enemies --- (hidden while shop open)
+        if (!shop_open)
+            for (auto &e : enemies)
+                e->draw();
+        // Ensure block overlay draws on top of weapons/enemies
+        if (player.blocking)
+        {
+            bitmap bframe = player.block_frames[player.block_frame];
+            if (player.facing == FACING_LEFT)
+            {
+                drawing_options opts = option_flip_y();
+                draw_bitmap(bframe, player.player_x, player.player_y, opts);
+            }
+            else
+            {
+                draw_bitmap(bframe, player.player_x, player.player_y);
+            }
+        }
+        // --- Camera shake when player is hit ---
+        if (player.just_got_hit)
+        {
+            camera_shake_timer = 10;
+            player.just_got_hit = false;
+        }
+        // --- Draw coins ---
+        for (auto &c : coins)
+        {
+            if (!c.active)
+                continue;
+            draw_bitmap(c.frames[c.frame], c.x, c.y);
+        }
+        // --- Player HP bar ---
+        draw_player_hp(player);
+        // --- Shop overlay ---
+        if (shop_open)
+        {
+            // Background panel
+            fill_rectangle(rgba_color(255, 255, 255, 220), 200, 160, 1200, 640);
+            draw_text("Tip: Click a card to unlock -> drag to slots; 1/2 to switch; Press ESC for next wave", COLOR_BLACK, "arial", 26, 240, 170);
+            { int money_y=175; if (money_warn_timer>0){ double phase=(30-money_warn_timer)*0.6; money_y += (int)(sin(phase)*8);} color money_col=(money_warn_timer>0)?COLOR_RED:COLOR_BLACK; draw_text("Money: $" + std::to_string(money), money_col, "arial", 26, 1100, money_y); if (money_warn_timer>0) money_warn_timer--; }
+            // Render shop cards horizontally (image x2 + texts)
+            double start_x = 300, start_y = 230, gap = 220, card_w = 200, card_h = 220;
+            for (int i = 0; i < (int)shop_items.size(); ++i)
+            {
+                double cx = start_x + i * gap;
+                double cy = start_y;
+                draw_rectangle(COLOR_BLACK, cx, cy, card_w, card_h);
+                bitmap img = bitmap_named(shop_items[i].image_key);
+                if (img)
+                {
+                    double iw = bitmap_width(img) * 2.0;
+                    double ih = bitmap_height(img) * 2.0;
+                    double ix = cx + (card_w - iw) / 2.0;
+                    double iy = cy + (card_h - ih) / 2.0 - 20; // shift a bit up to make room for text
+                    // Flip vertically (top-bottom) uses flip_x in SplashKit terminology
+                    drawing_options iopts = option_scale_bmp(2.0, 2.0, option_flip_x());
+                    draw_bitmap(img, ix, iy, iopts);
+                }
+                color tc = shop_items[i].unlocked ? COLOR_GREEN : COLOR_RED;
+                draw_text(shop_items[i].name + (shop_items[i].unlocked ? " (Unlocked)" : ""), tc, "arial", 20, cx + 10, cy + card_h - 60);
+                draw_text("$" + std::to_string(shop_items[i].price), COLOR_BLACK, "arial", 20, cx + 10, cy + card_h - 40);
+                draw_text(shop_items[i].dmg + "  " + shop_items[i].rof, COLOR_BLACK, "arial", 18, cx + 10, cy + card_h - 20);
+            }
+            // Render current weapon slots (bottom)
+            double slot_y = 560;
+            double slot_w = 240;
+            double slot_h = 200;
+            double slot_x1 = 380;
+            double slot_x2 = 760;
+            draw_rectangle(COLOR_BLACK, slot_x1, slot_y, slot_w, slot_h);
+            draw_rectangle(COLOR_BLACK, slot_x2, slot_y, slot_w, slot_h);
+            // Slot 1
+            if (weapons.size() > 0 && weapons[0])
+            {
+                // We need to infer type to pick image; fallback AK image
+                bitmap img = nullptr;
+                if (dynamic_cast<Shotgun *>(weapons[0].get()))
+                    img = bitmap_named("shotgun_img");
+                else if (dynamic_cast<AWP *>(weapons[0].get()))
+                    img = bitmap_named("awp_img");
+                else if (dynamic_cast<Gatling *>(weapons[0].get()))
+                    img = bitmap_named("gatling_img");
+                else if (dynamic_cast<Kelber *>(weapons[0].get()))
+                    img = bitmap_named("kelber_img");
+                else if (dynamic_cast<Pistol *>(weapons[0].get()))
+                    img = bitmap_named("weapon_img_0");
+                else
+                    img = bitmap_named("weapon_ak_img");
+                if (img)
+                {
+                    double iw = bitmap_width(img) * 2.0;
+                    double ih = bitmap_height(img) * 2.0;
+                    double ix = slot_x1 + (slot_w - iw) / 2.0;
+                    double iy = slot_y + (slot_h - ih) / 2.0;
+                    draw_bitmap(img, ix, iy, option_scale_bmp(2.0, 2.0, option_flip_x()));
+                }
+                draw_text("Slot 1", COLOR_BLACK, "arial", 20, slot_x1 + 10, slot_y + 10);
+            }
+            // Slot 2
+            if (weapons.size() > 1 && weapons[1])
+            {
+                bitmap img = nullptr;
+                if (dynamic_cast<Shotgun *>(weapons[1].get()))
+                    img = bitmap_named("shotgun_img");
+                else if (dynamic_cast<AWP *>(weapons[1].get()))
+                    img = bitmap_named("awp_img");
+                else if (dynamic_cast<Gatling *>(weapons[1].get()))
+                    img = bitmap_named("gatling_img");
+                else if (dynamic_cast<Kelber *>(weapons[1].get()))
+                    img = bitmap_named("kelber_img");
+                else if (dynamic_cast<Pistol *>(weapons[1].get()))
+                    img = bitmap_named("weapon_img_0");
+                else
+                    img = bitmap_named("weapon_ak_img");
+                if (img)
+                {
+                    double iw = bitmap_width(img) * 2.0;
+                    double ih = bitmap_height(img) * 2.0;
+                    double ix = slot_x2 + (slot_w - iw) / 2.0;
+                    double iy = slot_y + (slot_h - ih) / 2.0;
+                    draw_bitmap(img, ix, iy, option_scale_bmp(2.0, 2.0, option_flip_x()));
+                }
+                draw_text("Slot 2", COLOR_BLACK, "arial", 20, slot_x2 + 10, slot_y + 10);
+            }
+            // Draw dragging preview
+            if (dragging && drag_index >= 0)
+            {
+                bitmap img = bitmap_named(shop_items[drag_index].image_key);
+                if (img)
+                {
+                    draw_bitmap(img, drag_x - bitmap_width(img), drag_y - bitmap_height(img), option_scale_bmp(2.0, 2.0, option_flip_x()));
+                }
+            }
+        }
+        // --- Update coin animation and pickup ---
+        if (!shop_open)
+        {
+            // start sucking coins when wave ends
+            if (last_wave_flag && !wave_in_progress)
+                coin_suck_timer = 60; // ~0.5s of strong attraction
+            for (auto &c : coins)
+            {
+                if (!c.active)
+                    continue;
+                c.frame_timer++;
+                if (c.frame_timer >= c.frame_interval)
+                {
+                    c.frame = (c.frame + 1) % c.frame_count;
+                    c.frame_timer = 0;
+                }
+                double dx = player.player_x - c.x;
+                double dy = player.player_y - c.y;
+                double dist = sqrt(dx * dx + dy * dy);
+                // Attraction after wave end
+                if (!wave_in_progress && coin_suck_timer > 0 && dist > 1)
+                {
+                    double suck_speed = 20.0; // fast
+                    c.x += dx / dist * suck_speed;
+                    c.y += dy / dist * suck_speed;
+                }
+                if (dist < 75)
+                {
+                    money += (int)c.value;
+                    c.active = false;
+                }
+            }
+            if (!wave_in_progress && coin_suck_timer > 0)
+                coin_suck_timer--;
+        }
+        // --- Draw coin UI ---
+        load_bitmap("coin_ui", "../image/ui/coin_4.png");
+        bitmap coin_ui = bitmap_named("coin_ui");
+        draw_bitmap(coin_ui, 30, 80);
+        draw_text("x " + std::to_string(money), COLOR_BLACK, "arial", 32, 80, 85);
+        // --- Player death handling ---
+        if (!player.alive)
+        {
+            draw_text("GAME OVER!", COLOR_RED, "arial", 64,
+                      screen_w / 2 - 200, screen_h / 2 - 50);
+            draw_text("Press 'R' to Restart",
+                      COLOR_BLACK, "arial", 32,
+                      screen_w / 2 - 180, screen_h / 2 + 40);
+            if (key_typed(R_KEY))
+            {
+                // Reset player
+                player.alive = true;
+                player.hearts = player.max_hearts;
+                player.player_x = screen_w / 2.0;
+                player.player_y = screen_h / 2.0;
+                player.player_speed = 2.0;
+                player.blocking = false;
+                player.block_timer = 0;
+                player.knockback_dx = 0;
+                player.knockback_dy = 0;
+                player.knockback_timer = 0;
+                player.damage_cooldown = 0;
+                player.just_got_hit = false;
+                player.dash_disabled = false;
+                // Reset weapons to defaults (AK + Pistol)
+                weapons.clear();
+                auto ak2 = std::make_unique<AK>();
+                ak2->load_assets();
+                weapons.push_back(std::move(ak2));
+                auto pistol2 = std::make_unique<Pistol>();
+                pistol2->load_assets();
+                weapons.push_back(std::move(pistol2));
+                current_weapon = 0;
+                // Clear world state
+                enemies.clear();
+                coins.clear();
+                money = 0;
+                camera_shake_timer = 0;
+                // Reset wave/shop
+                wave = 1;
+                wave_in_progress = true;
+                wave_clear_timer = 0;
+                shop_open = false;
+                coin_suck_timer = 0;
+                last_wave_flag = wave_in_progress;
+            }
+        }
+        // --- Wave/Enemy HUD --- (remaining in wave: alive + not yet spawned)
+        int alive_count = 0;
+        for (auto &e : enemies)
+            if (e->alive)
+                alive_count++;
+        int remaining_to_spawn = 0;
+        if (wave_in_progress)
+        {
+            extern int g_max_in_this_wave;
+            extern int g_spawned_this_wave;
+            remaining_to_spawn = g_max_in_this_wave - g_spawned_this_wave;
+            if (remaining_to_spawn < 0)
+                remaining_to_spawn = 0;
+        }
+        int remaining_total = alive_count + remaining_to_spawn;
+        draw_text("Wave: " + std::to_string(wave) + "  Remaining: " + std::to_string(remaining_total),
+                  COLOR_BLACK, "arial", 28, screen_w / 2 - 160, 10);
+        // --- Green crosshair ---
+        static double spread = 10; // Crosshair offset
+        const double line_len = 8; // Line length
+        double cx = mouse_x(), cy = mouse_y();
+        color cross_color = COLOR_GREEN;
+        // Adjust spread while shooting
+        if (mouse_down(LEFT_BUTTON))
+        {
+            spread += 0.6;
+            if (spread > 20)
+                spread = 20;
+        }
+        else
+        {
+            spread -= 0.4;
+            if (spread < 10)
+                spread = 10;
+        }
+        // Draw crosshair lines
+        draw_line(cross_color, cx - spread - line_len, cy, cx - spread, cy);
+        draw_line(cross_color, cx + spread, cy, cx + spread + line_len, cy);
+        draw_line(cross_color, cx, cy - spread - line_len, cx, cy - spread);
+        draw_line(cross_color, cx, cy + spread, cx, cy + spread + line_len);
+        refresh_screen(120); // 120 FPS
+        // Update mouse previous state (after all logic uses it)
+        mouse_prev_down = mouse_down(LEFT_BUTTON);
+        last_wave_flag = wave_in_progress;
+    }
+    return 0;
+}
+
+
