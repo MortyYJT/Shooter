@@ -1,6 +1,7 @@
 out/
 build/
 target/
+.idea/
 *.class
 *.log
 *.exe
