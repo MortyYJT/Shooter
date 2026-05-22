@@ -24,6 +24,7 @@ public final class GamePanel extends JPanel {
         setPreferredSize(new Dimension(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT));
         setFocusable(true);
         addKeyListener(input);
+        addMouseListener(input);
         addMouseMotionListener(input);
     }
 

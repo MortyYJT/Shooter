@@ -13,6 +13,7 @@ public final class GameState {
     private final Rectangle screenBounds;
     private final BufferedImage background;
     private final Player player;
+    private final Weapon weapon;
 
     /**
      * Creates the initial game state.
@@ -23,6 +24,7 @@ public final class GameState {
         this.player = new Player(
                 GameConstants.SCREEN_WIDTH / 2.0,
                 GameConstants.SCREEN_HEIGHT / 2.0);
+        this.weapon = new Pistol();
     }
 
     /**
@@ -32,6 +34,7 @@ public final class GameState {
      */
     public void update(InputManager input) {
         player.update(input, screenBounds);
+        weapon.update(player, input, screenBounds);
     }
 
     /**
@@ -49,6 +52,7 @@ public final class GameState {
                 GameConstants.SCREEN_WIDTH,
                 GameConstants.SCREEN_HEIGHT);
         player.draw(graphics);
+        weapon.draw(graphics, player);
         drawDebugText(graphics);
     }
 

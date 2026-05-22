@@ -4,7 +4,7 @@ This repository is being migrated from the original C++/SplashKit shooter assign
 
 ## Current Stage
 
-Stage 1 creates a JDK-only Java2D/Swing version that can run without Gradle, Maven, or JavaFX installed locally.
+Stage 2 keeps the project JDK-only with Java2D/Swing and adds the first playable weapon loop.
 
 Implemented:
 
@@ -15,6 +15,10 @@ Implemented:
 - Player idle and walking animation.
 - WASD and arrow-key movement.
 - Screen-boundary clamping.
+- Pistol weapon rendering.
+- Mouse aiming.
+- Left-click pistol firing.
+- Bullet movement, rotation, and offscreen cleanup.
 
 ## Run Locally
 

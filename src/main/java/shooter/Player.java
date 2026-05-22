@@ -113,6 +113,24 @@ public final class Player {
         return y;
     }
 
+    /**
+     * Gets the x coordinate of the player's center point.
+     *
+     * @return current center x coordinate
+     */
+    public double getCenterX() {
+        return x + GameConstants.PLAYER_WIDTH / 2.0;
+    }
+
+    /**
+     * Gets the y coordinate of the player's center point.
+     *
+     * @return current center y coordinate
+     */
+    public double getCenterY() {
+        return y + GameConstants.PLAYER_HEIGHT / 2.0;
+    }
+
     private void loadAssets() {
         for (int index = 0; index < WALK_FRAME_COUNT; index++) {
             walkFrames[index] = AssetManager.loadImage(
