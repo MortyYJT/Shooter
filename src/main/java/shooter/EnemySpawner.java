@@ -40,8 +40,15 @@ public final class EnemySpawner {
         }
 
         spawnTimer = 0;
-        enemies.add(spawnSlime(bounds));
+        enemies.add(spawnEnemy(bounds, wave));
         spawned++;
+    }
+
+    private Enemy spawnEnemy(Rectangle bounds, int wave) {
+        if (isBossWave(wave)) {
+            return new BossEnemy(bounds.getCenterX() - 120, -180);
+        }
+        return spawnSlime(bounds);
     }
 
     private Enemy spawnSlime(Rectangle bounds) {
@@ -106,7 +113,14 @@ public final class EnemySpawner {
      * @return number of enemies to spawn
      */
     public int maxSpawnedForWave(int wave) {
+        if (isBossWave(wave)) {
+            return 1;
+        }
         return Math.min(50, 10 + Math.max(0, wave - 1) * 8);
+    }
+
+    private boolean isBossWave(int wave) {
+        return wave > 0 && wave % 5 == 0;
     }
 
 }
