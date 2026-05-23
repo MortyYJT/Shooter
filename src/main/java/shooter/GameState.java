@@ -24,6 +24,7 @@ public final class GameState {
     private final EnemySpawner enemySpawner;
     private final List<Enemy> enemies;
     private final List<Coin> coins;
+    private GameMode mode = GameMode.MENU;
     private int currentWeaponIndex;
     private int money;
 
@@ -51,6 +52,11 @@ public final class GameState {
      * @param input current input state
      */
     public void update(InputManager input) {
+        updateMode(input);
+        if (mode != GameMode.PLAYING) {
+            return;
+        }
+
         updateWeaponSelection(input);
         player.update(input, screenBounds);
         currentWeapon().update(player, input, screenBounds);
@@ -60,6 +66,9 @@ public final class GameState {
         }
         collectDefeatedEnemies();
         updateCoins();
+        if (!player.isAlive()) {
+            mode = GameMode.GAME_OVER;
+        }
     }
 
     /**
@@ -86,6 +95,30 @@ public final class GameState {
         }
         drawHud(graphics);
         drawDebugText(graphics);
+        drawOverlay(graphics);
+    }
+
+    private void updateMode(InputManager input) {
+        if (mode == GameMode.MENU && input.consumeKeyPress(KeyEvent.VK_ENTER)) {
+            resetRun();
+            mode = GameMode.PLAYING;
+        } else if (mode == GameMode.PLAYING && input.consumeKeyPress(KeyEvent.VK_ESCAPE)) {
+            mode = GameMode.PAUSED;
+        } else if (mode == GameMode.PAUSED && input.consumeKeyPress(KeyEvent.VK_ESCAPE)) {
+            mode = GameMode.PLAYING;
+        } else if (mode == GameMode.GAME_OVER && input.consumeKeyPress(KeyEvent.VK_R)) {
+            resetRun();
+            mode = GameMode.PLAYING;
+        }
+    }
+
+    private void resetRun() {
+        player.reset(GameConstants.SCREEN_WIDTH / 2.0, GameConstants.SCREEN_HEIGHT / 2.0);
+        enemies.clear();
+        coins.clear();
+        enemySpawner.reset();
+        currentWeaponIndex = 0;
+        money = 0;
     }
 
     private void collectDefeatedEnemies() {
@@ -137,6 +170,28 @@ public final class GameState {
                 16,
                 64);
         graphics.drawString("Money: " + money + " | Coins: " + coins.size(), 16, 84);
+    }
+
+    private void drawOverlay(Graphics2D graphics) {
+        if (mode == GameMode.PLAYING) {
+            return;
+        }
+
+        graphics.setColor(new Color(0, 0, 0, 150));
+        graphics.fillRect(0, 0, GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
+        graphics.setColor(Color.WHITE);
+        if (mode == GameMode.MENU) {
+            graphics.drawString("Bullet Bloom", GameConstants.SCREEN_WIDTH / 2 - 54, GameConstants.SCREEN_HEIGHT / 2 - 24);
+            graphics.drawString("Press Enter", GameConstants.SCREEN_WIDTH / 2 - 42, GameConstants.SCREEN_HEIGHT / 2 + 8);
+        } else if (mode == GameMode.PAUSED) {
+            graphics.drawString("Paused", GameConstants.SCREEN_WIDTH / 2 - 24, GameConstants.SCREEN_HEIGHT / 2 - 8);
+            graphics.drawString("Press Esc", GameConstants.SCREEN_WIDTH / 2 - 34, GameConstants.SCREEN_HEIGHT / 2 + 24);
+        } else if (mode == GameMode.GAME_OVER) {
+            graphics.setColor(Color.RED);
+            graphics.drawString("Game Over", GameConstants.SCREEN_WIDTH / 2 - 38, GameConstants.SCREEN_HEIGHT / 2 - 8);
+            graphics.setColor(Color.WHITE);
+            graphics.drawString("Press R", GameConstants.SCREEN_WIDTH / 2 - 28, GameConstants.SCREEN_HEIGHT / 2 + 24);
+        }
     }
 
     private void updateWeaponSelection(InputManager input) {

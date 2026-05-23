@@ -184,6 +184,31 @@ public final class Player {
         return maxHearts;
     }
 
+    /**
+     * Checks whether the player still has health.
+     *
+     * @return {@code true} while hearts remain
+     */
+    public boolean isAlive() {
+        return hearts > 0;
+    }
+
+    /**
+     * Resets position, health, and transient damage state for a new run.
+     *
+     * @param x reset x coordinate
+     * @param y reset y coordinate
+     */
+    public void reset(double x, double y) {
+        this.x = x;
+        this.y = y;
+        this.hearts = maxHearts;
+        this.damageCooldown = 0;
+        this.moving = false;
+        this.walkFrame = 0;
+        this.idleFrame = 0;
+    }
+
     private void loadAssets() {
         for (int index = 0; index < WALK_FRAME_COUNT; index++) {
             walkFrames[index] = AssetManager.loadImage(

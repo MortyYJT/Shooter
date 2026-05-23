@@ -62,4 +62,12 @@ public final class EnemySpawner {
         return new SlimeEnemy(x, y);
     }
 
+    /**
+     * Resets spawn counters for a new run.
+     */
+    public void reset() {
+        spawnTimer = 0;
+        spawned = 0;
+    }
+
 }

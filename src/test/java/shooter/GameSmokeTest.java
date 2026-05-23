@@ -2,6 +2,7 @@ package shooter;
 
 import java.awt.Canvas;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
@@ -27,6 +28,13 @@ public final class GameSmokeTest {
         GameState state = new GameState();
         InputManager input = new InputManager();
         Canvas source = new Canvas();
+        input.keyPressed(new KeyEvent(
+                source,
+                KeyEvent.KEY_PRESSED,
+                System.currentTimeMillis(),
+                0,
+                KeyEvent.VK_ENTER,
+                KeyEvent.CHAR_UNDEFINED));
         input.mouseMoved(new MouseEvent(
                 source,
                 MouseEvent.MOUSE_MOVED,

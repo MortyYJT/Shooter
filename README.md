@@ -24,6 +24,7 @@ Implemented:
 - Enemy coin drops, animated coin attraction, collection, and money tracking.
 - Resource-backed heart and coin HUD.
 - Multiple migrated weapons with number-key switching: pistol, AK-47, shotgun, and AWP.
+- Menu, pause, game-over, and restart flow.
 
 ## Run Locally
 
@@ -59,9 +60,9 @@ java -cp out/classes:out/test-classes shooter.GameSmokeTest
 3. Stage 3: Enemy model, slime migration, collision and damage.
 4. Stage 4: Coins, health UI, hit feedback.
 5. Stage 5: Multi-weapon migration and switching.
-6. Stage 6: Wave spawning, boss migration.
-7. Stage 7: Menu, pause, shop.
-8. Stage 8: Save/load and final debugging pass.
+6. Stage 6: Menu, pause, and restart flow.
+7. Stage 7: Wave spawning, boss migration.
+8. Stage 8: Shop, save/load, and final debugging pass.
 
 ## Notes
 
