@@ -8,7 +8,10 @@ import bulletbloom.pickup.Coin;
 import bulletbloom.player.Player;
 import bulletbloom.save.SaveData;
 import bulletbloom.save.SaveService;
+import bulletbloom.shop.ShopController;
+import bulletbloom.shop.ShopResult;
 import bulletbloom.shop.ShopState;
+import bulletbloom.shop.Wallet;
 import bulletbloom.ui.HudRenderer;
 import bulletbloom.ui.OverlayRenderer;
 import bulletbloom.ui.ShopRenderer;
@@ -40,9 +43,10 @@ public final class GameState {
     private final OverlayRenderer overlayRenderer;
     private final ShopRenderer shopRenderer;
     private final ShopState shopState;
+    private final Wallet wallet;
+    private final ShopController shopController;
     private GameMode mode = GameMode.MENU;
     private int currentWeaponIndex;
-    private int money;
     private int wave = 1;
     private boolean waveInProgress = true;
     private String statusMessage = "";
@@ -66,6 +70,8 @@ public final class GameState {
         this.overlayRenderer = new OverlayRenderer();
         this.shopRenderer = new ShopRenderer();
         this.shopState = new ShopState();
+        this.wallet = new Wallet();
+        this.shopController = new ShopController(shopState, wallet, weapons);
     }
 
     /**
@@ -126,7 +132,7 @@ public final class GameState {
         hudRenderer.render(
                 graphics,
                 player,
-                money,
+                wallet.getBalance(),
                 currentWeapon().getName(),
                 wave,
                 remainingEnemies(),
@@ -135,7 +141,7 @@ public final class GameState {
                 statusTimer > 0);
         overlayRenderer.render(graphics, mode, waveInProgress, saveService.exists());
         if (mode == GameMode.SHOP) {
-            shopRenderer.render(graphics, shopState, weapons, money, player);
+            shopRenderer.render(graphics, shopState, weapons, wallet.getBalance(), player);
         }
     }
 
@@ -172,7 +178,7 @@ public final class GameState {
         coins.clear();
         enemySpawner.reset();
         currentWeaponIndex = 0;
-        money = 0;
+        wallet.setBalance(0);
         wave = 1;
         waveInProgress = true;
         shopState.reset();
@@ -185,7 +191,7 @@ public final class GameState {
             SaveData data = saveService.load();
             resetRun();
             wave = Math.max(1, data.wave());
-            money = Math.max(0, data.money());
+            wallet.setBalance(data.money());
             player.setMaxHearts(data.maxHearts());
             player.setHearts(data.hearts());
             shopState.restoreUnlockedWeapons(data.unlockedWeapons());
@@ -204,7 +210,7 @@ public final class GameState {
         try {
             saveService.save(new SaveData(
                     wave,
-                    money,
+                    wallet.getBalance(),
                     player.getHearts(),
                     player.getMaxHearts(),
                     currentWeaponIndex,
@@ -235,7 +241,7 @@ public final class GameState {
         Iterator<Coin> iterator = coins.iterator();
         while (iterator.hasNext()) {
             Coin coin = iterator.next();
-            money += coin.update(player);
+            wallet.add(coin.update(player));
             if (!coin.isActive()) {
                 iterator.remove();
             }
@@ -260,57 +266,28 @@ public final class GameState {
             return;
         }
         if (input.consumeKeyPress(KeyEvent.VK_H)) {
-            buyHeal();
+            applyShopResult(shopController.buyHeal(player));
         }
         if (input.consumeKeyPress(KeyEvent.VK_M)) {
-            buyMaxHeart();
+            applyShopResult(shopController.buyMaxHeart(player));
         }
         buyWeaponIfRequested(input, KeyEvent.VK_2, 1);
         buyWeaponIfRequested(input, KeyEvent.VK_3, 2);
         buyWeaponIfRequested(input, KeyEvent.VK_4, 3);
     }
 
-    private void buyHeal() {
-        if (money < ShopState.HEAL_COST) {
-            setStatus("Not enough money");
-            return;
-        }
-        if (player.healOneHeart()) {
-            money -= ShopState.HEAL_COST;
-            setStatus("Healed");
-        } else {
-            setStatus("HP full");
-        }
-    }
-
-    private void buyMaxHeart() {
-        if (money < ShopState.MAX_HEART_COST) {
-            setStatus("Not enough money");
-            return;
-        }
-        money -= ShopState.MAX_HEART_COST;
-        player.increaseMaxHearts();
-        setStatus("Max HP increased");
-    }
-
     private void buyWeaponIfRequested(InputManager input, int keyCode, int weaponIndex) {
         if (!input.consumeKeyPress(keyCode)) {
             return;
         }
-        if (shopState.isWeaponUnlocked(weaponIndex)) {
-            currentWeaponIndex = weaponIndex;
-            setStatus("Equipped " + currentWeapon().getName());
-            return;
+        applyShopResult(shopController.buyOrEquipWeapon(weaponIndex));
+    }
+
+    private void applyShopResult(ShopResult result) {
+        if (result.hasSelectedWeapon()) {
+            currentWeaponIndex = result.selectedWeaponIndex();
         }
-        int cost = shopState.getWeaponCost(weaponIndex);
-        if (money < cost) {
-            setStatus("Not enough money");
-            return;
-        }
-        money -= cost;
-        shopState.unlockWeapon(weaponIndex);
-        currentWeaponIndex = weaponIndex;
-        setStatus("Unlocked " + currentWeapon().getName());
+        setStatus(result.message());
     }
 
     private Weapon currentWeapon() {
