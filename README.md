@@ -1,33 +1,39 @@
 # Bullet Bloom
 
-This repository is being migrated from the original C++/SplashKit shooter assignment into Java in small, reviewable stages.
+Bullet Bloom is a Java rewrite of the original C++/SplashKit shooter assignment. The Java version keeps the original pixel-art assets and core top-down shooter loop while moving gameplay into a JDK-only Java2D/Swing runtime.
 
-## Current Stage
+## Features
 
-Stage 5 keeps the project JDK-only with Java2D/Swing and now covers the core combat loop: player movement, multiple weapons, slime enemies, coin drops, and HUD rendering.
-
-Implemented:
-
-- Desktop window at the original `1600x1200` size.
-- Main game loop running at the original `120 FPS` target.
-- Resource loading from `src/main/resources`.
-- Background rendering.
-- Player idle and walking animation.
-- WASD and arrow-key movement.
-- Screen-boundary clamping.
-- Pistol weapon rendering.
-- Mouse aiming.
-- Left-click pistol firing.
-- Bullet movement, rotation, and offscreen cleanup.
-- Slime enemy spawning, chasing, health bars, and bullet damage.
-- Basic player contact damage.
+- Desktop Java2D/Swing game window at `1600x1200`.
+- Fixed-delay game loop targeting `120 FPS`.
+- Classpath-based image resource loading from `src/main/resources`.
+- Player movement, facing, idle/walk animation, health, and damage cooldown.
+- Mouse aiming and left-click firing.
+- Four migrated weapons: pistol, AK-47, shotgun, and AWP.
+- Number-key weapon switching.
+- Slime enemy waves with chase behavior, health bars, and bullet collision.
+- Boss encounter every fifth wave with a boss health bar and low-health sprite feedback.
 - Enemy coin drops, animated coin attraction, collection, and money tracking.
-- Resource-backed heart and coin HUD.
-- Multiple migrated weapons with number-key switching: pistol, AK-47, shotgun, and AWP.
-- Menu, pause, game-over, and restart flow.
-- Wave-based slime spawning with clear prompts and next-wave progression.
-- Boss waves every fifth wave with boss health, contact damage, and low-health sprite feedback.
-- Pause-menu save and title-menu continue using a Java properties save file.
+- Resource-backed HUD for hearts, money, weapon, wave, remaining enemies, and active coins.
+- Title menu, pause menu, wave-clear prompt, game-over screen, and restart flow.
+- Pause-menu save and title-menu continue via `save/bullet-bloom.properties`.
+- Smoke and deterministic logic tests.
+- Runnable jar packaging script.
+
+## Controls
+
+| Action | Input |
+| --- | --- |
+| Start | `Enter` |
+| Continue save | `C` on the title screen |
+| Move | `WASD` or arrow keys |
+| Aim | Mouse |
+| Fire | Left mouse button |
+| Switch weapons | `1`, `2`, `3`, `4` |
+| Pause/resume | `Esc` |
+| Save | `S` while paused |
+| Restart after game over | `R` |
+| Next wave | `Enter` after wave clear |
 
 ## Run Locally
 
@@ -43,14 +49,7 @@ Run:
 scripts/run.sh
 ```
 
-Package runnable jar:
-
-```bash
-scripts/package.sh
-java -jar out/dist/bullet-bloom.jar
-```
-
-Smoke test:
+Test:
 
 ```bash
 scripts/test.sh
@@ -62,28 +61,27 @@ Generate Javadoc:
 scripts/javadoc.sh
 ```
 
-Manual commands:
+Package and run a jar:
 
 ```bash
-javac -d out/classes $(find src/main/java -name '*.java')
-cp -R src/main/resources/* out/classes/
-javac -cp out/classes -d out/test-classes $(find src/test/java -name '*.java')
-java -cp out/classes:out/test-classes bulletbloom.GameSmokeTest
+scripts/package.sh
+java -jar out/dist/bullet-bloom.jar
 ```
 
-## Migration Plan
+## Project Layout
 
-1. Stage 1: Java application shell, loop, input, background, player movement.
-2. Stage 2: Weapon model, bullets, firing direction, projectile rendering.
-3. Stage 3: Enemy model, slime migration, collision and damage.
-4. Stage 4: Coins, health UI, hit feedback.
-5. Stage 5: Multi-weapon migration and switching.
-6. Stage 6: Menu, pause, and restart flow.
-7. Stage 7: Wave spawning.
-8. Stage 8: Save/load and final debugging pass.
+```text
+src/main/java/bulletbloom      Java runtime and gameplay code
+src/main/resources             Runtime images and game assets
+src/test/java/bulletbloom      Smoke and logic tests
+scripts                        Build, run, test, package, and Javadoc helpers
+enemy, player, ui, weapon      Original C++ source kept for migration reference
+image, sound                   Original asset folders kept for reference
+```
 
-## Notes
+## Development Notes
 
-- The original C++ source is intentionally kept during migration for behavior comparison.
-- New Java classes include Javadoc on public types and methods.
-- Stage commits should stay small so each phase can be reviewed before pushing.
+- The Java runtime is intentionally JDK-only; no Gradle, Maven, or external game framework is required.
+- `scripts/test.sh` runs deterministic logic checks first, then an offscreen render smoke test.
+- Local Java save data is ignored at `save/bullet-bloom.properties`.
+- Generated outputs stay under `out/` and are ignored by Git.
