@@ -12,7 +12,7 @@ Bullet Bloom is a Java rewrite of the original C++/SplashKit shooter assignment.
 - Mouse aiming and left-click firing.
 - Four migrated weapons: pistol, AK-47, shotgun, and AWP.
 - Number-key weapon switching.
-- Slime enemy waves with chase behavior, health bars, and bullet collision.
+- Mixed enemy waves with slime, melee, archer, health bars, and bullet collision.
 - Boss encounter every fifth wave with a boss health bar and low-health sprite feedback.
 - Enemy coin drops, animated coin attraction, collection, and money tracking.
 - Resource-backed HUD for hearts, money, weapon, wave, remaining enemies, and active coins.

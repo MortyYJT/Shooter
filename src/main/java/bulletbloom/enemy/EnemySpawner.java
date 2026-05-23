@@ -54,10 +54,32 @@ public final class EnemySpawner {
         if (isBossWave(wave)) {
             return new BossEnemy(bounds.getCenterX() - 120, -180);
         }
+        int roll = random.nextInt(100);
+        if (wave >= 3 && roll >= 88) {
+            return spawnArcher(bounds);
+        }
+        if (wave >= 2 && roll >= 58) {
+            return spawnMelee(bounds);
+        }
         return spawnSlime(bounds);
     }
 
+    private Enemy spawnArcher(Rectangle bounds) {
+        SpawnPoint point = randomSpawnPoint(bounds);
+        return new ArcherEnemy(point.x(), point.y());
+    }
+
+    private Enemy spawnMelee(Rectangle bounds) {
+        SpawnPoint point = randomSpawnPoint(bounds);
+        return new MeleeEnemy(point.x(), point.y());
+    }
+
     private Enemy spawnSlime(Rectangle bounds) {
+        SpawnPoint point = randomSpawnPoint(bounds);
+        return new SlimeEnemy(point.x(), point.y());
+    }
+
+    private SpawnPoint randomSpawnPoint(Rectangle bounds) {
         int side = random.nextInt(4);
         double x;
         double y;
@@ -79,7 +101,7 @@ public final class EnemySpawner {
                 y = random.nextDouble(bounds.getHeight());
             }
         }
-        return new SlimeEnemy(x, y);
+        return new SpawnPoint(x, y);
     }
 
     /**
@@ -129,4 +151,6 @@ public final class EnemySpawner {
         return wave > 0 && wave % 5 == 0;
     }
 
+    private record SpawnPoint(double x, double y) {
+    }
 }
