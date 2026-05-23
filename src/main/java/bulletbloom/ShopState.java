@@ -7,12 +7,12 @@ import java.util.Arrays;
  */
 public final class ShopState {
     /** Cost to heal one missing heart. */
-    public static final int HEAL_COST = 15;
+    public static final int HEAL_COST = 20;
 
     /** Cost to add one max heart. */
-    public static final int MAX_HEART_COST = 80;
+    public static final int MAX_HEART_COST = 70;
 
-    private static final int[] WEAPON_COSTS = {0, 120, 180, 260};
+    private static final int[] WEAPON_COSTS = {0, 45, 90, 150};
 
     private final boolean[] unlockedWeapons = new boolean[WEAPON_COSTS.length];
 

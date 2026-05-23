@@ -35,14 +35,17 @@ public final class Coin {
     }
 
     /**
-     * Creates a randomly valued coin using the original 2-4 value range.
+     * Creates a randomly valued coin scaled by wave.
      *
      * @param x initial x coordinate
      * @param y initial y coordinate
+     * @param wave current wave number
      * @return new coin
      */
-    public static Coin randomDrop(double x, double y) {
-        return new Coin(x, y, 2 + RANDOM.nextInt(3));
+    public static Coin randomDrop(double x, double y, int wave) {
+        int baseValue = 4 + RANDOM.nextInt(4);
+        int waveBonus = Math.max(0, wave - 1);
+        return new Coin(x, y, baseValue + waveBonus);
     }
 
     /**

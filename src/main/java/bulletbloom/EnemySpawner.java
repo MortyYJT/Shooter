@@ -8,7 +8,7 @@ import java.util.Random;
  * Controls timed enemy spawning for the Java gameplay loop.
  */
 public final class EnemySpawner {
-    private static final int SPAWN_INTERVAL = 60;
+    private static final int SPAWN_INTERVAL = 50;
     private static final int MAX_ACTIVE_ENEMIES = 8;
 
     private final Random random = new Random();
@@ -122,7 +122,7 @@ public final class EnemySpawner {
         if (isBossWave(wave)) {
             return 1;
         }
-        return Math.min(50, 10 + Math.max(0, wave - 1) * 8);
+        return Math.min(42, 8 + Math.max(0, wave - 1) * 6);
     }
 
     private boolean isBossWave(int wave) {

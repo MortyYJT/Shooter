@@ -211,7 +211,7 @@ public final class GameState {
         while (iterator.hasNext()) {
             Enemy enemy = iterator.next();
             if (!enemy.isAlive()) {
-                coins.add(Coin.randomDrop(enemy.getCenterX(), enemy.getCenterY()));
+                coins.add(Coin.randomDrop(enemy.getCenterX(), enemy.getCenterY(), wave));
                 iterator.remove();
             }
         }

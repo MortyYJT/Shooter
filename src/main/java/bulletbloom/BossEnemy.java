@@ -10,7 +10,7 @@ import java.util.List;
  * Boss enemy used for milestone waves in the Java migration.
  */
 public final class BossEnemy implements Enemy {
-    private static final int MAX_HP = 2000;
+    private static final int MAX_HP = 1600;
     private static final double SPEED = 0.8;
 
     private final BufferedImage regularImage;
