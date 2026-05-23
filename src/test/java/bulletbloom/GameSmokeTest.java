@@ -1,5 +1,9 @@
 package bulletbloom;
 
+import bulletbloom.assets.AssetManager;
+import bulletbloom.core.GameConstants;
+import bulletbloom.core.GameState;
+import bulletbloom.input.InputManager;
 import java.awt.Canvas;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;

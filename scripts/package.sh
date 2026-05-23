@@ -6,4 +6,4 @@ cd "$ROOT_DIR"
 
 scripts/build.sh
 mkdir -p out/dist
-jar --create --file out/dist/bullet-bloom.jar --main-class bulletbloom.GameApp -C out/classes .
+jar --create --file out/dist/bullet-bloom.jar --main-class bulletbloom.app.GameApp -C out/classes .

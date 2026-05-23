@@ -1,5 +1,9 @@
 package bulletbloom;
 
+import bulletbloom.core.Geometry;
+import bulletbloom.input.InputManager;
+import bulletbloom.save.SaveData;
+import bulletbloom.save.SaveService;
 import java.awt.Canvas;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;

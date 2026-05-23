@@ -77,7 +77,7 @@ java -jar out/dist/bullet-bloom.jar
 ## Project Layout
 
 ```text
-src/main/java/bulletbloom      Java runtime and gameplay code
+src/main/java/bulletbloom      Java runtime and gameplay packages
 src/main/resources             Runtime images and game assets
 src/test/java/bulletbloom      Smoke and logic tests
 scripts                        Build, run, test, package, and Javadoc helpers
