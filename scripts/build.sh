@@ -6,5 +6,5 @@ cd "$ROOT_DIR"
 
 rm -rf out/classes
 mkdir -p out/classes
-javac -d out/classes $(find src/main/java -name '*.java')
+javac -d out/classes $(find src/main/java -name '*.java' -print)
 cp -R src/main/resources/* out/classes/

@@ -43,6 +43,13 @@ Run:
 scripts/run.sh
 ```
 
+Package runnable jar:
+
+```bash
+scripts/package.sh
+java -jar out/dist/bullet-bloom.jar
+```
+
 Smoke test:
 
 ```bash
