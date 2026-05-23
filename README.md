@@ -31,27 +31,29 @@ Implemented:
 
 ## Run Locally
 
-Compile:
+Build:
 
 ```bash
-javac -d out/classes $(find src/main/java -name '*.java')
-```
-
-Copy resources:
-
-```bash
-cp -R src/main/resources/* out/classes/
+scripts/build.sh
 ```
 
 Run:
 
 ```bash
-java -cp out/classes shooter.GameApp
+scripts/run.sh
 ```
 
 Smoke test:
 
 ```bash
+scripts/test.sh
+```
+
+Manual commands:
+
+```bash
+javac -d out/classes $(find src/main/java -name '*.java')
+cp -R src/main/resources/* out/classes/
 javac -cp out/classes -d out/test-classes $(find src/test/java -name '*.java')
 java -cp out/classes:out/test-classes shooter.GameSmokeTest
 ```
