@@ -13,6 +13,9 @@ public enum GameMode {
     /** Frozen gameplay view with pause overlay. */
     PAUSED,
 
+    /** Shop overlay between combat decisions. */
+    SHOP,
+
     /** Player defeat screen. */
     GAME_OVER
 }

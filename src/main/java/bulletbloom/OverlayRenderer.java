@@ -43,7 +43,7 @@ public final class OverlayRenderer {
             }
         } else if (mode == GameMode.PAUSED) {
             drawCentered(graphics, "Paused", -24, TITLE_FONT, Color.WHITE);
-            drawCentered(graphics, "Esc Resume    S Save", 28, BODY_FONT, Color.WHITE);
+            drawCentered(graphics, "Esc Resume    B Shop    S Save", 28, BODY_FONT, Color.WHITE);
         } else if (mode == GameMode.GAME_OVER) {
             drawCentered(graphics, "Game Over", -24, TITLE_FONT, Color.RED);
             drawCentered(graphics, "Press R to Restart", 28, BODY_FONT, Color.WHITE);

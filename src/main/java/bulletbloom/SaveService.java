@@ -54,7 +54,9 @@ public final class SaveService {
         properties.setProperty("wave", Integer.toString(data.wave()));
         properties.setProperty("money", Integer.toString(data.money()));
         properties.setProperty("hearts", Integer.toString(data.hearts()));
+        properties.setProperty("maxHearts", Integer.toString(data.maxHearts()));
         properties.setProperty("currentWeaponIndex", Integer.toString(data.currentWeaponIndex()));
+        properties.setProperty("unlockedWeapons", encodeBooleans(data.unlockedWeapons()));
         try (OutputStream output = Files.newOutputStream(savePath)) {
             properties.store(output, "Bullet Bloom save data");
         }
@@ -75,7 +77,9 @@ public final class SaveService {
                 parseInt(properties, "wave", 1),
                 parseInt(properties, "money", 0),
                 parseInt(properties, "hearts", 6),
-                parseInt(properties, "currentWeaponIndex", 0));
+                parseInt(properties, "maxHearts", 6),
+                parseInt(properties, "currentWeaponIndex", 0),
+                parseBooleans(properties.getProperty("unlockedWeapons", "true,false,false,false"), 4));
     }
 
     private int parseInt(Properties properties, String key, int fallback) {
@@ -84,5 +88,26 @@ public final class SaveService {
         } catch (NumberFormatException exception) {
             return fallback;
         }
+    }
+
+    private String encodeBooleans(boolean[] values) {
+        StringBuilder builder = new StringBuilder();
+        for (int index = 0; index < values.length; index++) {
+            if (index > 0) {
+                builder.append(',');
+            }
+            builder.append(values[index]);
+        }
+        return builder.toString();
+    }
+
+    private boolean[] parseBooleans(String encoded, int minimumLength) {
+        String[] parts = encoded.split(",");
+        boolean[] values = new boolean[Math.max(minimumLength, parts.length)];
+        for (int index = 0; index < parts.length; index++) {
+            values[index] = Boolean.parseBoolean(parts[index]);
+        }
+        values[0] = true;
+        return values;
     }
 }

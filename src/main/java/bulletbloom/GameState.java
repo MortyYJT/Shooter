@@ -24,6 +24,8 @@ public final class GameState {
     private final SaveService saveService;
     private final HudRenderer hudRenderer;
     private final OverlayRenderer overlayRenderer;
+    private final ShopRenderer shopRenderer;
+    private final ShopState shopState;
     private GameMode mode = GameMode.MENU;
     private int currentWeaponIndex;
     private int money;
@@ -48,6 +50,8 @@ public final class GameState {
         this.saveService = new SaveService();
         this.hudRenderer = new HudRenderer();
         this.overlayRenderer = new OverlayRenderer();
+        this.shopRenderer = new ShopRenderer();
+        this.shopState = new ShopState();
     }
 
     /**
@@ -116,6 +120,9 @@ public final class GameState {
                 statusMessage,
                 statusTimer > 0);
         overlayRenderer.render(graphics, mode, waveInProgress, saveService.exists());
+        if (mode == GameMode.SHOP) {
+            shopRenderer.render(graphics, shopState, weapons, money, player);
+        }
     }
 
     private void updateMode(InputManager input) {
@@ -126,10 +133,16 @@ public final class GameState {
             loadRun();
         } else if (mode == GameMode.PLAYING && input.consumeKeyPress(KeyEvent.VK_ESCAPE)) {
             mode = GameMode.PAUSED;
+        } else if (mode == GameMode.PLAYING && !waveInProgress && input.consumeKeyPress(KeyEvent.VK_B)) {
+            mode = GameMode.SHOP;
         } else if (mode == GameMode.PAUSED && input.consumeKeyPress(KeyEvent.VK_ESCAPE)) {
             mode = GameMode.PLAYING;
+        } else if (mode == GameMode.PAUSED && input.consumeKeyPress(KeyEvent.VK_B)) {
+            mode = GameMode.SHOP;
         } else if (mode == GameMode.PAUSED && input.consumeKeyPress(KeyEvent.VK_S)) {
             saveRun();
+        } else if (mode == GameMode.SHOP) {
+            updateShop(input);
         } else if (mode == GameMode.GAME_OVER && input.consumeKeyPress(KeyEvent.VK_R)) {
             resetRun();
             mode = GameMode.PLAYING;
@@ -148,6 +161,7 @@ public final class GameState {
         money = 0;
         wave = 1;
         waveInProgress = true;
+        shopState.reset();
         statusMessage = "";
         statusTimer = 0;
     }
@@ -158,8 +172,13 @@ public final class GameState {
             resetRun();
             wave = Math.max(1, data.wave());
             money = Math.max(0, data.money());
+            player.setMaxHearts(data.maxHearts());
             player.setHearts(data.hearts());
+            shopState.restoreUnlockedWeapons(data.unlockedWeapons());
             currentWeaponIndex = Math.max(0, Math.min(weapons.size() - 1, data.currentWeaponIndex()));
+            if (!shopState.isWeaponUnlocked(currentWeaponIndex)) {
+                currentWeaponIndex = 0;
+            }
             mode = GameMode.PLAYING;
             setStatus("Loaded");
         } catch (IOException exception) {
@@ -169,7 +188,13 @@ public final class GameState {
 
     private void saveRun() {
         try {
-            saveService.save(new SaveData(wave, money, player.getHearts(), currentWeaponIndex));
+            saveService.save(new SaveData(
+                    wave,
+                    money,
+                    player.getHearts(),
+                    player.getMaxHearts(),
+                    currentWeaponIndex,
+                    shopState.copyUnlockedWeapons()));
             setStatus("Saved");
         } catch (IOException exception) {
             setStatus("Save failed");
@@ -204,15 +229,74 @@ public final class GameState {
     }
 
     private void updateWeaponSelection(InputManager input) {
-        if (input.consumeKeyPress(KeyEvent.VK_1)) {
+        if (input.consumeKeyPress(KeyEvent.VK_1) && shopState.isWeaponUnlocked(0)) {
             currentWeaponIndex = 0;
-        } else if (input.consumeKeyPress(KeyEvent.VK_2) && weapons.size() > 1) {
+        } else if (input.consumeKeyPress(KeyEvent.VK_2) && weapons.size() > 1 && shopState.isWeaponUnlocked(1)) {
             currentWeaponIndex = 1;
-        } else if (input.consumeKeyPress(KeyEvent.VK_3) && weapons.size() > 2) {
+        } else if (input.consumeKeyPress(KeyEvent.VK_3) && weapons.size() > 2 && shopState.isWeaponUnlocked(2)) {
             currentWeaponIndex = 2;
-        } else if (input.consumeKeyPress(KeyEvent.VK_4) && weapons.size() > 3) {
+        } else if (input.consumeKeyPress(KeyEvent.VK_4) && weapons.size() > 3 && shopState.isWeaponUnlocked(3)) {
             currentWeaponIndex = 3;
         }
+    }
+
+    private void updateShop(InputManager input) {
+        if (input.consumeKeyPress(KeyEvent.VK_ESCAPE) || input.consumeKeyPress(KeyEvent.VK_B)) {
+            mode = GameMode.PAUSED;
+            return;
+        }
+        if (input.consumeKeyPress(KeyEvent.VK_H)) {
+            buyHeal();
+        }
+        if (input.consumeKeyPress(KeyEvent.VK_M)) {
+            buyMaxHeart();
+        }
+        buyWeaponIfRequested(input, KeyEvent.VK_2, 1);
+        buyWeaponIfRequested(input, KeyEvent.VK_3, 2);
+        buyWeaponIfRequested(input, KeyEvent.VK_4, 3);
+    }
+
+    private void buyHeal() {
+        if (money < ShopState.HEAL_COST) {
+            setStatus("Not enough money");
+            return;
+        }
+        if (player.healOneHeart()) {
+            money -= ShopState.HEAL_COST;
+            setStatus("Healed");
+        } else {
+            setStatus("HP full");
+        }
+    }
+
+    private void buyMaxHeart() {
+        if (money < ShopState.MAX_HEART_COST) {
+            setStatus("Not enough money");
+            return;
+        }
+        money -= ShopState.MAX_HEART_COST;
+        player.increaseMaxHearts();
+        setStatus("Max HP increased");
+    }
+
+    private void buyWeaponIfRequested(InputManager input, int keyCode, int weaponIndex) {
+        if (!input.consumeKeyPress(keyCode)) {
+            return;
+        }
+        if (shopState.isWeaponUnlocked(weaponIndex)) {
+            currentWeaponIndex = weaponIndex;
+            setStatus("Equipped " + currentWeapon().getName());
+            return;
+        }
+        int cost = shopState.getWeaponCost(weaponIndex);
+        if (money < cost) {
+            setStatus("Not enough money");
+            return;
+        }
+        money -= cost;
+        shopState.unlockWeapon(weaponIndex);
+        currentWeaponIndex = weaponIndex;
+        setStatus("Unlocked " + currentWeapon().getName());
     }
 
     private Weapon currentWeapon() {

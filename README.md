@@ -16,6 +16,7 @@ Bullet Bloom is a Java rewrite of the original C++/SplashKit shooter assignment.
 - Enemy coin drops, animated coin attraction, collection, and money tracking.
 - Resource-backed HUD for hearts, money, weapon, wave, remaining enemies, and active coins.
 - Title menu, pause menu, wave-clear prompt, game-over screen, and restart flow.
+- Intermission shop for healing, max-health upgrades, and weapon unlocks.
 - Pause-menu save and title-menu continue via `save/bullet-bloom.properties`.
 - Smoke and deterministic logic tests.
 - Runnable jar packaging script.
@@ -31,6 +32,9 @@ Bullet Bloom is a Java rewrite of the original C++/SplashKit shooter assignment.
 | Fire | Left mouse button |
 | Switch weapons | `1`, `2`, `3`, `4` |
 | Pause/resume | `Esc` |
+| Shop | `B` while paused or after wave clear |
+| Heal in shop | `H` |
+| Buy max HP in shop | `M` |
 | Save | `S` while paused |
 | Restart after game over | `R` |
 | Next wave | `Enter` after wave clear |

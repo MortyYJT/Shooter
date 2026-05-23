@@ -194,6 +194,37 @@ public final class Player {
     }
 
     /**
+     * Restores the maximum heart count.
+     *
+     * @param maxHearts restored maximum hearts
+     */
+    public void setMaxHearts(int maxHearts) {
+        this.maxHearts = Math.max(1, maxHearts);
+        hearts = Math.min(hearts, this.maxHearts);
+    }
+
+    /**
+     * Adds one maximum heart and heals it immediately.
+     */
+    public void increaseMaxHearts() {
+        maxHearts++;
+        hearts = maxHearts;
+    }
+
+    /**
+     * Heals one heart.
+     *
+     * @return {@code true} when a heart was restored
+     */
+    public boolean healOneHeart() {
+        if (hearts >= maxHearts) {
+            return false;
+        }
+        hearts++;
+        return true;
+    }
+
+    /**
      * Checks whether the player still has health.
      *
      * @return {@code true} while hearts remain

@@ -69,13 +69,17 @@ public final class GameLogicTest {
         Path tempDirectory = Files.createTempDirectory("bullet-bloom-save-test");
         Path savePath = tempDirectory.resolve("save.properties");
         SaveService saveService = new SaveService(savePath);
-        SaveData saved = new SaveData(4, 320, 5, 2);
+        SaveData saved = new SaveData(4, 320, 5, 8, 2, new boolean[] {true, true, false, true});
         saveService.save(saved);
         SaveData loaded = saveService.load();
         assertEquals(saved.wave(), loaded.wave(), "wave should round-trip");
         assertEquals(saved.money(), loaded.money(), "money should round-trip");
         assertEquals(saved.hearts(), loaded.hearts(), "hearts should round-trip");
+        assertEquals(saved.maxHearts(), loaded.maxHearts(), "max hearts should round-trip");
         assertEquals(saved.currentWeaponIndex(), loaded.currentWeaponIndex(), "weapon slot should round-trip");
+        assertTrue(loaded.unlockedWeapons()[1], "AK unlock should round-trip");
+        assertFalse(loaded.unlockedWeapons()[2], "shotgun lock should round-trip");
+        assertTrue(loaded.unlockedWeapons()[3], "AWP unlock should round-trip");
         Files.deleteIfExists(savePath);
         Files.deleteIfExists(tempDirectory);
     }
