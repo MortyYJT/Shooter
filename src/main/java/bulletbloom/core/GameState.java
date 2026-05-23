@@ -2,7 +2,7 @@ package bulletbloom.core;
 
 import bulletbloom.assets.AssetManager;
 import bulletbloom.enemy.Enemy;
-import bulletbloom.enemy.EnemySpawner;
+import bulletbloom.enemy.WaveController;
 import bulletbloom.input.InputManager;
 import bulletbloom.pickup.Coin;
 import bulletbloom.player.Player;
@@ -35,7 +35,7 @@ public final class GameState {
     private final BufferedImage background;
     private final Player player;
     private final List<Weapon> weapons;
-    private final EnemySpawner enemySpawner;
+    private final WaveController waveController;
     private final List<Enemy> enemies;
     private final List<Coin> coins;
     private final SaveService saveService;
@@ -47,8 +47,6 @@ public final class GameState {
     private final ShopController shopController;
     private GameMode mode = GameMode.MENU;
     private int currentWeaponIndex;
-    private int wave = 1;
-    private boolean waveInProgress = true;
     private String statusMessage = "";
     private int statusTimer;
 
@@ -62,7 +60,7 @@ public final class GameState {
                 GameConstants.SCREEN_WIDTH / 2.0,
                 GameConstants.SCREEN_HEIGHT / 2.0);
         this.weapons = WeaponCatalog.createDefaultWeapons();
-        this.enemySpawner = new EnemySpawner();
+        this.waveController = new WaveController();
         this.enemies = new ArrayList<>();
         this.coins = new ArrayList<>();
         this.saveService = new SaveService();
@@ -88,17 +86,13 @@ public final class GameState {
         updateWeaponSelection(input);
         player.update(input, screenBounds);
         currentWeapon().update(player, input, screenBounds);
-        if (waveInProgress) {
-            enemySpawner.update(enemies, screenBounds, wave);
+        if (waveController.isInProgress()) {
+            waveController.updateSpawning(enemies, screenBounds);
             for (Enemy enemy : enemies) {
                 enemy.update(player, currentWeapon().getBullets());
             }
-            if (enemySpawner.isWaveComplete(wave, enemies)) {
-                waveInProgress = false;
-            }
         } else if (input.consumeKeyPress(KeyEvent.VK_ENTER)) {
-            wave++;
-            waveInProgress = true;
+            waveController.startNextWave();
         }
         collectDefeatedEnemies();
         updateCoins();
@@ -134,12 +128,12 @@ public final class GameState {
                 player,
                 wallet.getBalance(),
                 currentWeapon().getName(),
-                wave,
+                waveController.getWave(),
                 remainingEnemies(),
                 coins.size(),
                 statusMessage,
                 statusTimer > 0);
-        overlayRenderer.render(graphics, mode, waveInProgress, saveService.exists());
+        overlayRenderer.render(graphics, mode, waveController.isInProgress(), saveService.exists());
         if (mode == GameMode.SHOP) {
             shopRenderer.render(graphics, shopState, weapons, wallet.getBalance(), player);
         }
@@ -153,7 +147,7 @@ public final class GameState {
             loadRun();
         } else if (mode == GameMode.PLAYING && input.consumeKeyPress(KeyEvent.VK_ESCAPE)) {
             mode = GameMode.PAUSED;
-        } else if (mode == GameMode.PLAYING && !waveInProgress && input.consumeKeyPress(KeyEvent.VK_B)) {
+        } else if (mode == GameMode.PLAYING && !waveController.isInProgress() && input.consumeKeyPress(KeyEvent.VK_B)) {
             mode = GameMode.SHOP;
         } else if (mode == GameMode.PAUSED && input.consumeKeyPress(KeyEvent.VK_ESCAPE)) {
             mode = GameMode.PLAYING;
@@ -176,11 +170,9 @@ public final class GameState {
         player.reset(GameConstants.SCREEN_WIDTH / 2.0, GameConstants.SCREEN_HEIGHT / 2.0);
         enemies.clear();
         coins.clear();
-        enemySpawner.reset();
+        waveController.reset();
         currentWeaponIndex = 0;
         wallet.setBalance(0);
-        wave = 1;
-        waveInProgress = true;
         shopState.reset();
         statusMessage = "";
         statusTimer = 0;
@@ -190,7 +182,7 @@ public final class GameState {
         try {
             SaveData data = saveService.load();
             resetRun();
-            wave = Math.max(1, data.wave());
+            waveController.restoreWave(data.wave());
             wallet.setBalance(data.money());
             player.setMaxHearts(data.maxHearts());
             player.setHearts(data.hearts());
@@ -209,7 +201,7 @@ public final class GameState {
     private void saveRun() {
         try {
             saveService.save(new SaveData(
-                    wave,
+                    waveController.getWave(),
                     wallet.getBalance(),
                     player.getHearts(),
                     player.getMaxHearts(),
@@ -231,7 +223,7 @@ public final class GameState {
         while (iterator.hasNext()) {
             Enemy enemy = iterator.next();
             if (!enemy.isAlive()) {
-                coins.add(Coin.randomDrop(enemy.getCenterX(), enemy.getCenterY(), wave));
+                coins.add(Coin.randomDrop(enemy.getCenterX(), enemy.getCenterY(), waveController.getWave()));
                 iterator.remove();
             }
         }
@@ -295,6 +287,6 @@ public final class GameState {
     }
 
     private int remainingEnemies() {
-        return enemySpawner.getRemainingToSpawn(wave) + enemies.size();
+        return waveController.remainingEnemies(enemies.size());
     }
 }
