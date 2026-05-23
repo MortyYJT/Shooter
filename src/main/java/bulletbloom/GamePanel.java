@@ -9,8 +9,15 @@ import javax.swing.JPanel;
  * Swing drawing surface for the Java port.
  */
 public final class GamePanel extends JPanel {
+    private static final long serialVersionUID = 1L;
+
+    /** Input tracker attached to the panel. */
     private final InputManager input;
+
+    /** Mutable game state updated by the loop. */
     private final GameState gameState;
+
+    /** Swing timer loop that advances gameplay. */
     private final GameLoop gameLoop;
 
     /**

@@ -17,6 +17,12 @@ public final class EnemySpawner {
     private int activeWave = -1;
 
     /**
+     * Creates a spawner with empty wave progress.
+     */
+    public EnemySpawner() {
+    }
+
+    /**
      * Updates the spawn timer and creates enemies when limits allow.
      *
      * @param enemies active enemy list

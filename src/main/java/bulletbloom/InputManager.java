@@ -20,6 +20,12 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
     private boolean leftMouseClicked;
 
     /**
+     * Creates an empty input state tracker.
+     */
+    public InputManager() {
+    }
+
+    /**
      * Checks whether a key is currently held down.
      *
      * @param keyCode {@link KeyEvent} virtual key code

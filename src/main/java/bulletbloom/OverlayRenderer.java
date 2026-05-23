@@ -14,6 +14,12 @@ public final class OverlayRenderer {
     private static final Font BODY_FONT = new Font(Font.SANS_SERIF, Font.BOLD, 22);
 
     /**
+     * Creates an overlay renderer.
+     */
+    public OverlayRenderer() {
+    }
+
+    /**
      * Draws the current overlay when gameplay should be visually gated.
      *
      * @param graphics active graphics context

@@ -14,6 +14,12 @@ public final class SaveService {
     private static final Path SAVE_PATH = Path.of("save", "bullet-bloom.properties");
 
     /**
+     * Creates a save service using the default local save path.
+     */
+    public SaveService() {
+    }
+
+    /**
      * Checks whether a Java save file exists.
      *
      * @return {@code true} when save data is available

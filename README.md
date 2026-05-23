@@ -56,6 +56,12 @@ Smoke test:
 scripts/test.sh
 ```
 
+Generate Javadoc:
+
+```bash
+scripts/javadoc.sh
+```
+
 Manual commands:
 
 ```bash
