@@ -58,7 +58,7 @@ public final class HudRenderer {
         graphics.drawString(weaponName, coinX + 160, y + 32);
         graphics.drawString("Wave " + wave, coinX + 260, y + 32);
         graphics.drawString("Remaining " + remainingEnemies, coinX + 350, y + 32);
-        graphics.drawString("Coins " + activeCoins, coinX + 470, y + 32);
+        graphics.drawString("Drops " + activeCoins, coinX + 470, y + 32);
 
         if (showStatus) {
             graphics.drawString(statusMessage, 20, y + 72);

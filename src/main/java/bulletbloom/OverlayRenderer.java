@@ -49,7 +49,7 @@ public final class OverlayRenderer {
             drawCentered(graphics, "Press R to Restart", 28, BODY_FONT, Color.WHITE);
         } else if (mode == GameMode.PLAYING) {
             drawCentered(graphics, "Wave Clear", -24, TITLE_FONT, Color.WHITE);
-            drawCentered(graphics, "Press Enter", 28, BODY_FONT, Color.WHITE);
+            drawCentered(graphics, "Enter Next Wave    B Shop", 28, BODY_FONT, Color.WHITE);
         }
     }
 

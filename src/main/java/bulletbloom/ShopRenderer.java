@@ -40,8 +40,9 @@ public final class ShopRenderer {
                 BODY_FONT,
                 Color.WHITE);
         drawCentered(graphics, "HP: " + player.getHearts() + "/" + player.getMaxHearts(), -50, BODY_FONT, Color.WHITE);
+        drawCentered(graphics, "Press a weapon number to buy or equip", -18, BODY_FONT, Color.WHITE);
 
-        int y = GameConstants.SCREEN_HEIGHT / 2;
+        int y = GameConstants.SCREEN_HEIGHT / 2 + 24;
         for (int index = 1; index < weapons.size(); index++) {
             String state = shopState.isWeaponUnlocked(index) ? "Unlocked" : shopState.getWeaponCost(index) + " coins";
             drawCentered(

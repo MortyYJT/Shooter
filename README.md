@@ -38,6 +38,7 @@ Bullet Bloom is a Java rewrite of the original C++/SplashKit shooter assignment.
 | Save | `S` while paused |
 | Restart after game over | `R` |
 | Next wave | `Enter` after wave clear |
+| Buy/equip weapon in shop | `2`, `3`, `4` |
 
 ## Run Locally
 
