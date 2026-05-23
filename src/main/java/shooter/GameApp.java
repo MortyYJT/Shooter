@@ -22,7 +22,7 @@ public final class GameApp {
     }
 
     private static void createWindow() {
-        JFrame frame = new JFrame("Shooter - Java Port");
+        JFrame frame = new JFrame("Bullet Bloom");
         GamePanel panel = new GamePanel();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setResizable(false);

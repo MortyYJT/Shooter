@@ -58,7 +58,7 @@ public final class GameState {
 
     private void drawDebugText(Graphics2D graphics) {
         graphics.setColor(new Color(255, 255, 255, 210));
-        graphics.drawString("Stage 1 Java port | Move: WASD / Arrow keys", 16, 24);
+        graphics.drawString("Bullet Bloom | Move: WASD / Arrow keys | Fire: Left click", 16, 24);
         graphics.drawString(
                 "Player: " + Math.round(player.getX()) + ", " + Math.round(player.getY()),
                 16,

@@ -1,4 +1,4 @@
-# Shooter Java Rewrite
+# Bullet Bloom
 
 This repository is being migrated from the original C++/SplashKit shooter assignment into Java in small, reviewable stages.
 
