@@ -13,6 +13,8 @@ public final class Bullet {
     private final int damage;
     private double x;
     private double y;
+    private double previousX;
+    private double previousY;
     private final double dx;
     private final double dy;
     private boolean active = true;
@@ -30,6 +32,8 @@ public final class Bullet {
     public Bullet(double x, double y, double angleRadians, double speed, int damage, BufferedImage image) {
         this.x = x;
         this.y = y;
+        this.previousX = x;
+        this.previousY = y;
         this.dx = Math.cos(angleRadians) * speed;
         this.dy = Math.sin(angleRadians) * speed;
         this.damage = damage;
@@ -46,6 +50,8 @@ public final class Bullet {
             return;
         }
 
+        previousX = x;
+        previousY = y;
         x += dx;
         y += dy;
         if (!bounds.intersects(x, y, Math.max(1, image.getWidth()), Math.max(1, image.getHeight()))) {
@@ -80,11 +86,54 @@ public final class Bullet {
     }
 
     /**
+     * Deactivates the bullet after a collision.
+     */
+    public void deactivate() {
+        active = false;
+    }
+
+    /**
      * Gets the bullet damage value.
      *
      * @return damage applied by this bullet
      */
     public int getDamage() {
         return damage;
+    }
+
+    /**
+     * Gets the current x coordinate.
+     *
+     * @return current x coordinate
+     */
+    public double getX() {
+        return x;
+    }
+
+    /**
+     * Gets the current y coordinate.
+     *
+     * @return current y coordinate
+     */
+    public double getY() {
+        return y;
+    }
+
+    /**
+     * Gets the previous x coordinate before the latest update.
+     *
+     * @return previous x coordinate
+     */
+    public double getPreviousX() {
+        return previousX;
+    }
+
+    /**
+     * Gets the previous y coordinate before the latest update.
+     *
+     * @return previous y coordinate
+     */
+    public double getPreviousY() {
+        return previousY;
     }
 }

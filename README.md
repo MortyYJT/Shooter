@@ -19,6 +19,8 @@ Implemented:
 - Mouse aiming.
 - Left-click pistol firing.
 - Bullet movement, rotation, and offscreen cleanup.
+- Slime enemy spawning, chasing, health bars, and bullet damage.
+- Basic player contact damage.
 
 ## Run Locally
 

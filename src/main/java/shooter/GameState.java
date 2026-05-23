@@ -5,6 +5,8 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Owns the active gameplay state for the first Java migration stage.
@@ -14,6 +16,8 @@ public final class GameState {
     private final BufferedImage background;
     private final Player player;
     private final Weapon weapon;
+    private final EnemySpawner enemySpawner;
+    private final List<Enemy> enemies;
 
     /**
      * Creates the initial game state.
@@ -25,6 +29,8 @@ public final class GameState {
                 GameConstants.SCREEN_WIDTH / 2.0,
                 GameConstants.SCREEN_HEIGHT / 2.0);
         this.weapon = new Pistol();
+        this.enemySpawner = new EnemySpawner();
+        this.enemies = new ArrayList<>();
     }
 
     /**
@@ -35,6 +41,11 @@ public final class GameState {
     public void update(InputManager input) {
         player.update(input, screenBounds);
         weapon.update(player, input, screenBounds);
+        enemySpawner.update(enemies, screenBounds);
+        for (Enemy enemy : enemies) {
+            enemy.update(player, weapon.getBullets());
+        }
+        enemySpawner.removeDefeated(enemies);
     }
 
     /**
@@ -53,6 +64,9 @@ public final class GameState {
                 GameConstants.SCREEN_HEIGHT);
         player.draw(graphics);
         weapon.draw(graphics, player);
+        for (Enemy enemy : enemies) {
+            enemy.draw(graphics);
+        }
         drawDebugText(graphics);
     }
 
@@ -63,5 +77,9 @@ public final class GameState {
                 "Player: " + Math.round(player.getX()) + ", " + Math.round(player.getY()),
                 16,
                 44);
+        graphics.drawString(
+                "HP: " + player.getHearts() + "/" + player.getMaxHearts() + " | Enemies: " + enemies.size(),
+                16,
+                64);
     }
 }

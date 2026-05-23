@@ -26,6 +26,9 @@ public final class Player {
     private int idleFrame;
     private int idleTimer;
     private boolean moving;
+    private int hearts = 6;
+    private int maxHearts = 6;
+    private int damageCooldown;
 
     /**
      * Creates a player at a world position.
@@ -47,6 +50,10 @@ public final class Player {
      * @param bounds playable screen bounds
      */
     public void update(InputManager input, Rectangle bounds) {
+        if (damageCooldown > 0) {
+            damageCooldown--;
+        }
+
         double dx = 0;
         double dy = 0;
 
@@ -129,6 +136,52 @@ public final class Player {
      */
     public double getCenterY() {
         return y + GameConstants.PLAYER_HEIGHT / 2.0;
+    }
+
+    /**
+     * Gets the player's collision bounds.
+     *
+     * @return current collision rectangle
+     */
+    public Rectangle getBounds() {
+        return new Rectangle(
+                (int) Math.round(x),
+                (int) Math.round(y),
+                GameConstants.PLAYER_WIDTH,
+                GameConstants.PLAYER_HEIGHT);
+    }
+
+    /**
+     * Applies damage if the invulnerability cooldown has expired.
+     *
+     * @param amount hearts to remove
+     * @return {@code true} when damage was applied
+     */
+    public boolean takeDamage(int amount) {
+        if (damageCooldown > 0 || hearts <= 0) {
+            return false;
+        }
+        hearts = Math.max(0, hearts - amount);
+        damageCooldown = 120;
+        return true;
+    }
+
+    /**
+     * Gets the current heart count.
+     *
+     * @return current hearts
+     */
+    public int getHearts() {
+        return hearts;
+    }
+
+    /**
+     * Gets the maximum heart count.
+     *
+     * @return maximum hearts
+     */
+    public int getMaxHearts() {
+        return maxHearts;
     }
 
     private void loadAssets() {

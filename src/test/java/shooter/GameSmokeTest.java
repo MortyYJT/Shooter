@@ -47,6 +47,9 @@ public final class GameSmokeTest {
                 false,
                 MouseEvent.BUTTON1));
         state.update(input);
+        for (int index = 0; index < 65; index++) {
+            state.update(input);
+        }
 
         BufferedImage frame = new BufferedImage(
                 GameConstants.SCREEN_WIDTH,
