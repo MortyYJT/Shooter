@@ -77,7 +77,15 @@ java -jar out/dist/bullet-bloom.jar
 ## Project Layout
 
 ```text
-src/main/java/bulletbloom      Java runtime and gameplay packages
+src/main/java/bulletbloom/app      Swing entry point, panel, and loop
+src/main/java/bulletbloom/core     Game state, constants, mode, and geometry
+src/main/java/bulletbloom/enemy    Enemy contracts, spawning, slime, and boss
+src/main/java/bulletbloom/weapon   Bullets and player weapons
+src/main/java/bulletbloom/player   Player movement, health, and animation
+src/main/java/bulletbloom/shop     Shop state, wallet, and transactions
+src/main/java/bulletbloom/ui       HUD, overlay, and shop rendering
+src/main/java/bulletbloom/save     Save data and persistence
+src/main/java/bulletbloom/assets   Classpath asset loading
 src/main/resources             Runtime images and game assets
 src/test/java/bulletbloom      Smoke and logic tests
 scripts                        Build, run, test, package, and Javadoc helpers
