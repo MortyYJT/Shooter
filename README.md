@@ -9,6 +9,7 @@ Bullet Bloom is a Java rewrite of the original C++/SplashKit shooter assignment.
 - Fixed-delay game loop targeting `120 FPS`.
 - Classpath-based image resource loading from `src/main/resources`.
 - Player movement, facing, idle/walk animation, health, and damage cooldown.
+- Player dash and timed blocking with migrated block animation frames.
 - Mouse aiming and left-click firing.
 - Four migrated weapons: pistol, AK-47, shotgun, and AWP.
 - Number-key weapon switching.
@@ -29,6 +30,8 @@ Bullet Bloom is a Java rewrite of the original C++/SplashKit shooter assignment.
 | Start | `Enter` |
 | Continue save | `C` on the title screen |
 | Move | `WASD` or arrow keys |
+| Dash | `Left Shift` while moving |
+| Block | `Space` |
 | Aim | Mouse |
 | Fire | Left mouse button |
 | Switch weapons | `1`, `2`, `3`, `4` |

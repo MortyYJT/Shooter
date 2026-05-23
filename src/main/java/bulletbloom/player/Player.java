@@ -16,11 +16,18 @@ import java.awt.image.BufferedImage;
 public final class Player {
     private static final int WALK_FRAME_COUNT = 5;
     private static final int IDLE_FRAME_COUNT = 3;
+    private static final int BLOCK_FRAME_COUNT = 4;
     private static final int WALK_FRAME_INTERVAL = 8;
     private static final int IDLE_FRAME_INTERVAL = 60;
+    private static final int BLOCK_DURATION = 20;
+    private static final int BLOCK_FRAME_INTERVAL = 5;
+    private static final int DASH_DURATION = 10;
+    private static final int DASH_COOLDOWN = 45;
+    private static final double DASH_SPEED = 20.0;
 
     private final BufferedImage[] walkFrames = new BufferedImage[WALK_FRAME_COUNT];
     private final BufferedImage[] idleFrames = new BufferedImage[IDLE_FRAME_COUNT];
+    private final BufferedImage[] blockFrames = new BufferedImage[BLOCK_FRAME_COUNT];
     private double x;
     private double y;
     private double speed;
@@ -30,6 +37,12 @@ public final class Player {
     private int idleFrame;
     private int idleTimer;
     private boolean moving;
+    private int blockTimer;
+    private int blockFrame;
+    private int dashTimer;
+    private int dashCooldown;
+    private double dashDirectionX;
+    private double dashDirectionY;
     private int hearts = 6;
     private int maxHearts = 6;
     private int damageCooldown;
@@ -57,6 +70,9 @@ public final class Player {
         if (damageCooldown > 0) {
             damageCooldown--;
         }
+        if (dashCooldown > 0) {
+            dashCooldown--;
+        }
 
         double dx = 0;
         double dy = 0;
@@ -77,7 +93,14 @@ public final class Player {
         }
 
         moving = dx != 0 || dy != 0;
-        if (moving) {
+        updateBlock(input);
+        updateDash(input, dx, dy);
+
+        if (dashTimer > 0) {
+            x += dashDirectionX * DASH_SPEED;
+            y += dashDirectionY * DASH_SPEED;
+            dashTimer--;
+        } else if (moving) {
             double length = Math.sqrt(dx * dx + dy * dy);
             x += dx / length * speed;
             y += dy / length * speed;
@@ -96,6 +119,7 @@ public final class Player {
         BufferedImage frame = currentFrame();
         if (facing == Direction.RIGHT) {
             graphics.drawImage(frame, (int) Math.round(x), (int) Math.round(y), null);
+            drawBlock(graphics, false);
             return;
         }
 
@@ -104,6 +128,7 @@ public final class Player {
         graphics.scale(-1, 1);
         graphics.drawImage(frame, 0, 0, null);
         graphics.setTransform(original);
+        drawBlock(graphics, true);
     }
 
     /**
@@ -163,6 +188,10 @@ public final class Player {
      */
     public boolean takeDamage(int amount) {
         if (damageCooldown > 0 || hearts <= 0) {
+            return false;
+        }
+        if (isBlocking()) {
+            damageCooldown = 30;
             return false;
         }
         hearts = Math.max(0, hearts - amount);
@@ -251,6 +280,10 @@ public final class Player {
         this.moving = false;
         this.walkFrame = 0;
         this.idleFrame = 0;
+        this.blockTimer = 0;
+        this.blockFrame = 0;
+        this.dashTimer = 0;
+        this.dashCooldown = 0;
     }
 
     private void loadAssets() {
@@ -262,6 +295,55 @@ public final class Player {
             idleFrames[index] = AssetManager.loadImage(
                     "/image/player/player_breath/Lumine_breath_" + index + ".png");
         }
+        for (int index = 0; index < BLOCK_FRAME_COUNT; index++) {
+            blockFrames[index] = AssetManager.loadImage(
+                    "/image/player/player_block/player_block_" + index + ".png");
+        }
+    }
+
+    private void updateBlock(InputManager input) {
+        if (input.consumeKeyPress(KeyEvent.VK_SPACE) && blockTimer == 0) {
+            blockTimer = BLOCK_DURATION;
+            blockFrame = 0;
+        }
+        if (blockTimer > 0) {
+            blockTimer--;
+            blockFrame = Math.min(
+                    BLOCK_FRAME_COUNT - 1,
+                    (BLOCK_DURATION - blockTimer) / BLOCK_FRAME_INTERVAL);
+        }
+    }
+
+    private void updateDash(InputManager input, double dx, double dy) {
+        if (!input.consumeKeyPress(KeyEvent.VK_SHIFT) || dashCooldown > 0 || dashTimer > 0 || dx == 0 && dy == 0) {
+            return;
+        }
+        double length = Math.sqrt(dx * dx + dy * dy);
+        dashDirectionX = dx / length;
+        dashDirectionY = dy / length;
+        dashTimer = DASH_DURATION;
+        dashCooldown = DASH_COOLDOWN;
+    }
+
+    private void drawBlock(Graphics2D graphics, boolean flipped) {
+        if (!isBlocking()) {
+            return;
+        }
+        BufferedImage frame = blockFrames[blockFrame];
+        if (!flipped) {
+            graphics.drawImage(frame, (int) Math.round(x), (int) Math.round(y), null);
+            return;
+        }
+
+        AffineTransform original = graphics.getTransform();
+        graphics.translate(x + GameConstants.PLAYER_WIDTH, y);
+        graphics.scale(-1, 1);
+        graphics.drawImage(frame, 0, 0, null);
+        graphics.setTransform(original);
+    }
+
+    private boolean isBlocking() {
+        return blockTimer > 0;
     }
 
     private void updateAnimation(boolean moving) {
