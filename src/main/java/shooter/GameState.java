@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,11 +25,14 @@ public final class GameState {
     private final EnemySpawner enemySpawner;
     private final List<Enemy> enemies;
     private final List<Coin> coins;
+    private final SaveService saveService;
     private GameMode mode = GameMode.MENU;
     private int currentWeaponIndex;
     private int money;
     private int wave = 1;
     private boolean waveInProgress = true;
+    private String statusMessage = "";
+    private int statusTimer;
 
     /**
      * Creates the initial game state.
@@ -46,6 +50,7 @@ public final class GameState {
         this.enemySpawner = new EnemySpawner();
         this.enemies = new ArrayList<>();
         this.coins = new ArrayList<>();
+        this.saveService = new SaveService();
     }
 
     /**
@@ -112,13 +117,20 @@ public final class GameState {
         if (mode == GameMode.MENU && input.consumeKeyPress(KeyEvent.VK_ENTER)) {
             resetRun();
             mode = GameMode.PLAYING;
+        } else if (mode == GameMode.MENU && input.consumeKeyPress(KeyEvent.VK_C) && saveService.exists()) {
+            loadRun();
         } else if (mode == GameMode.PLAYING && input.consumeKeyPress(KeyEvent.VK_ESCAPE)) {
             mode = GameMode.PAUSED;
         } else if (mode == GameMode.PAUSED && input.consumeKeyPress(KeyEvent.VK_ESCAPE)) {
             mode = GameMode.PLAYING;
+        } else if (mode == GameMode.PAUSED && input.consumeKeyPress(KeyEvent.VK_S)) {
+            saveRun();
         } else if (mode == GameMode.GAME_OVER && input.consumeKeyPress(KeyEvent.VK_R)) {
             resetRun();
             mode = GameMode.PLAYING;
+        }
+        if (statusTimer > 0) {
+            statusTimer--;
         }
     }
 
@@ -131,6 +143,37 @@ public final class GameState {
         money = 0;
         wave = 1;
         waveInProgress = true;
+        statusMessage = "";
+        statusTimer = 0;
+    }
+
+    private void loadRun() {
+        try {
+            SaveData data = saveService.load();
+            resetRun();
+            wave = Math.max(1, data.wave());
+            money = Math.max(0, data.money());
+            player.setHearts(data.hearts());
+            currentWeaponIndex = Math.max(0, Math.min(weapons.size() - 1, data.currentWeaponIndex()));
+            mode = GameMode.PLAYING;
+            setStatus("Loaded");
+        } catch (IOException exception) {
+            setStatus("Load failed");
+        }
+    }
+
+    private void saveRun() {
+        try {
+            saveService.save(new SaveData(wave, money, player.getHearts(), currentWeaponIndex));
+            setStatus("Saved");
+        } catch (IOException exception) {
+            setStatus("Save failed");
+        }
+    }
+
+    private void setStatus(String message) {
+        statusMessage = message;
+        statusTimer = 180;
     }
 
     private void collectDefeatedEnemies() {
@@ -187,6 +230,9 @@ public final class GameState {
                 "Remaining: " + (enemySpawner.getRemainingToSpawn(wave) + enemies.size()),
                 16,
                 104);
+        if (statusTimer > 0) {
+            graphics.drawString(statusMessage, 16, 124);
+        }
     }
 
     private void drawOverlay(Graphics2D graphics) {
@@ -200,9 +246,13 @@ public final class GameState {
         if (mode == GameMode.MENU) {
             graphics.drawString("Bullet Bloom", GameConstants.SCREEN_WIDTH / 2 - 54, GameConstants.SCREEN_HEIGHT / 2 - 24);
             graphics.drawString("Press Enter", GameConstants.SCREEN_WIDTH / 2 - 42, GameConstants.SCREEN_HEIGHT / 2 + 8);
+            if (saveService.exists()) {
+                graphics.drawString("Press C", GameConstants.SCREEN_WIDTH / 2 - 28, GameConstants.SCREEN_HEIGHT / 2 + 40);
+            }
         } else if (mode == GameMode.PAUSED) {
             graphics.drawString("Paused", GameConstants.SCREEN_WIDTH / 2 - 24, GameConstants.SCREEN_HEIGHT / 2 - 8);
             graphics.drawString("Press Esc", GameConstants.SCREEN_WIDTH / 2 - 34, GameConstants.SCREEN_HEIGHT / 2 + 24);
+            graphics.drawString("Press S", GameConstants.SCREEN_WIDTH / 2 - 28, GameConstants.SCREEN_HEIGHT / 2 + 56);
         } else if (mode == GameMode.GAME_OVER) {
             graphics.setColor(Color.RED);
             graphics.drawString("Game Over", GameConstants.SCREEN_WIDTH / 2 - 38, GameConstants.SCREEN_HEIGHT / 2 - 8);

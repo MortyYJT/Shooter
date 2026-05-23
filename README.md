@@ -27,6 +27,7 @@ Implemented:
 - Menu, pause, game-over, and restart flow.
 - Wave-based slime spawning with clear prompts and next-wave progression.
 - Boss waves every fifth wave with boss health, contact damage, and low-health sprite feedback.
+- Pause-menu save and title-menu continue using a Java properties save file.
 
 ## Run Locally
 
@@ -64,7 +65,7 @@ java -cp out/classes:out/test-classes shooter.GameSmokeTest
 5. Stage 5: Multi-weapon migration and switching.
 6. Stage 6: Menu, pause, and restart flow.
 7. Stage 7: Wave spawning.
-8. Stage 8: Shop, save/load, and final debugging pass.
+8. Stage 8: Save/load and final debugging pass.
 
 ## Notes
 

@@ -185,6 +185,15 @@ public final class Player {
     }
 
     /**
+     * Restores the current heart count from a save file.
+     *
+     * @param hearts restored heart value
+     */
+    public void setHearts(int hearts) {
+        this.hearts = Math.max(0, Math.min(maxHearts, hearts));
+    }
+
+    /**
      * Checks whether the player still has health.
      *
      * @return {@code true} while hearts remain

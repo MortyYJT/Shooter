@@ -1,0 +1,68 @@
+package shooter;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Properties;
+
+/**
+ * Persists and loads Java rewrite save data.
+ */
+public final class SaveService {
+    private static final Path SAVE_PATH = Path.of("save", "bullet-bloom.properties");
+
+    /**
+     * Checks whether a Java save file exists.
+     *
+     * @return {@code true} when save data is available
+     */
+    public boolean exists() {
+        return Files.exists(SAVE_PATH);
+    }
+
+    /**
+     * Saves game state to disk.
+     *
+     * @param data data to persist
+     * @throws IOException if the save file cannot be written
+     */
+    public void save(SaveData data) throws IOException {
+        Files.createDirectories(SAVE_PATH.getParent());
+        Properties properties = new Properties();
+        properties.setProperty("wave", Integer.toString(data.wave()));
+        properties.setProperty("money", Integer.toString(data.money()));
+        properties.setProperty("hearts", Integer.toString(data.hearts()));
+        properties.setProperty("currentWeaponIndex", Integer.toString(data.currentWeaponIndex()));
+        try (OutputStream output = Files.newOutputStream(SAVE_PATH)) {
+            properties.store(output, "Bullet Bloom save data");
+        }
+    }
+
+    /**
+     * Loads game state from disk.
+     *
+     * @return loaded save data
+     * @throws IOException if the save file cannot be read
+     */
+    public SaveData load() throws IOException {
+        Properties properties = new Properties();
+        try (InputStream input = Files.newInputStream(SAVE_PATH)) {
+            properties.load(input);
+        }
+        return new SaveData(
+                parseInt(properties, "wave", 1),
+                parseInt(properties, "money", 0),
+                parseInt(properties, "hearts", 6),
+                parseInt(properties, "currentWeaponIndex", 0));
+    }
+
+    private int parseInt(Properties properties, String key, int fallback) {
+        try {
+            return Integer.parseInt(properties.getProperty(key, Integer.toString(fallback)));
+        } catch (NumberFormatException exception) {
+            return fallback;
+        }
+    }
+}
