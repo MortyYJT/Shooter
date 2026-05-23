@@ -25,6 +25,7 @@ Implemented:
 - Resource-backed heart and coin HUD.
 - Multiple migrated weapons with number-key switching: pistol, AK-47, shotgun, and AWP.
 - Menu, pause, game-over, and restart flow.
+- Wave-based slime spawning with clear prompts and next-wave progression.
 
 ## Run Locally
 
@@ -61,8 +62,8 @@ java -cp out/classes:out/test-classes shooter.GameSmokeTest
 4. Stage 4: Coins, health UI, hit feedback.
 5. Stage 5: Multi-weapon migration and switching.
 6. Stage 6: Menu, pause, and restart flow.
-7. Stage 7: Wave spawning, boss migration.
-8. Stage 8: Shop, save/load, and final debugging pass.
+7. Stage 7: Wave spawning.
+8. Stage 8: Boss, shop, save/load, and final debugging pass.
 
 ## Notes
 

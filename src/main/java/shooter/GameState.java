@@ -27,6 +27,8 @@ public final class GameState {
     private GameMode mode = GameMode.MENU;
     private int currentWeaponIndex;
     private int money;
+    private int wave = 1;
+    private boolean waveInProgress = true;
 
     /**
      * Creates the initial game state.
@@ -60,9 +62,17 @@ public final class GameState {
         updateWeaponSelection(input);
         player.update(input, screenBounds);
         currentWeapon().update(player, input, screenBounds);
-        enemySpawner.update(enemies, screenBounds);
-        for (Enemy enemy : enemies) {
-            enemy.update(player, currentWeapon().getBullets());
+        if (waveInProgress) {
+            enemySpawner.update(enemies, screenBounds, wave);
+            for (Enemy enemy : enemies) {
+                enemy.update(player, currentWeapon().getBullets());
+            }
+            if (enemySpawner.isWaveComplete(wave, enemies)) {
+                waveInProgress = false;
+            }
+        } else if (input.consumeKeyPress(KeyEvent.VK_ENTER)) {
+            wave++;
+            waveInProgress = true;
         }
         collectDefeatedEnemies();
         updateCoins();
@@ -119,6 +129,8 @@ public final class GameState {
         enemySpawner.reset();
         currentWeaponIndex = 0;
         money = 0;
+        wave = 1;
+        waveInProgress = true;
     }
 
     private void collectDefeatedEnemies() {
@@ -156,6 +168,7 @@ public final class GameState {
         graphics.setColor(Color.BLACK);
         graphics.drawString("x " + money, coinX + 50, y + 32);
         graphics.drawString(currentWeapon().getName(), coinX + 160, y + 32);
+        graphics.drawString("Wave " + wave, coinX + 260, y + 32);
     }
 
     private void drawDebugText(Graphics2D graphics) {
@@ -170,10 +183,14 @@ public final class GameState {
                 16,
                 64);
         graphics.drawString("Money: " + money + " | Coins: " + coins.size(), 16, 84);
+        graphics.drawString(
+                "Remaining: " + (enemySpawner.getRemainingToSpawn(wave) + enemies.size()),
+                16,
+                104);
     }
 
     private void drawOverlay(Graphics2D graphics) {
-        if (mode == GameMode.PLAYING) {
+        if (mode == GameMode.PLAYING && waveInProgress) {
             return;
         }
 
@@ -191,6 +208,9 @@ public final class GameState {
             graphics.drawString("Game Over", GameConstants.SCREEN_WIDTH / 2 - 38, GameConstants.SCREEN_HEIGHT / 2 - 8);
             graphics.setColor(Color.WHITE);
             graphics.drawString("Press R", GameConstants.SCREEN_WIDTH / 2 - 28, GameConstants.SCREEN_HEIGHT / 2 + 24);
+        } else if (mode == GameMode.PLAYING) {
+            graphics.drawString("Wave Clear", GameConstants.SCREEN_WIDTH / 2 - 38, GameConstants.SCREEN_HEIGHT / 2 - 8);
+            graphics.drawString("Press Enter", GameConstants.SCREEN_WIDTH / 2 - 42, GameConstants.SCREEN_HEIGHT / 2 + 24);
         }
     }
 
