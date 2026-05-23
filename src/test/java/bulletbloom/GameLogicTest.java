@@ -24,6 +24,7 @@ public final class GameLogicTest {
     public static void main(String[] args) throws Exception {
         testGeometrySegmentIntersection();
         testInputConsumption();
+        testScaledMouseMapping();
         testSaveRoundTrip();
     }
 
@@ -63,6 +64,23 @@ public final class GameLogicTest {
         assertTrue(input.isLeftMouseDown(), "left mouse button should be down after press");
         assertTrue(input.consumeLeftMouseClick(), "left mouse click should be consumed");
         assertFalse(input.consumeLeftMouseClick(), "left mouse click should only be consumed once");
+    }
+
+    private static void testScaledMouseMapping() {
+        InputManager input = new InputManager();
+        input.updateViewport(100, 50, 0.5);
+        Canvas source = new Canvas();
+        input.mouseMoved(new MouseEvent(
+                source,
+                MouseEvent.MOUSE_MOVED,
+                System.currentTimeMillis(),
+                0,
+                500,
+                350,
+                0,
+                false));
+        assertEquals(800, input.getMousePosition().x, "scaled mouse x should map to logical coordinates");
+        assertEquals(600, input.getMousePosition().y, "scaled mouse y should map to logical coordinates");
     }
 
     private static void testSaveRoundTrip() throws Exception {

@@ -5,6 +5,7 @@ Bullet Bloom is a Java rewrite of the original C++/SplashKit shooter assignment.
 ## Features
 
 - Desktop Java2D/Swing game window at `1600x1200`.
+- Resizable game window with aspect-correct viewport scaling.
 - Fixed-delay game loop targeting `120 FPS`.
 - Classpath-based image resource loading from `src/main/resources`.
 - Player movement, facing, idle/walk animation, health, and damage cooldown.

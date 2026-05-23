@@ -25,7 +25,7 @@ public final class GameApp {
         JFrame frame = new JFrame("Bullet Bloom");
         GamePanel panel = new GamePanel();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setResizable(false);
+        frame.setResizable(true);
         frame.setContentPane(panel);
         frame.pack();
         frame.setLocationRelativeTo(null);

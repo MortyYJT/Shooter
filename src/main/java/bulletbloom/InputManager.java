@@ -16,6 +16,9 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
     private final Set<Integer> pressedKeys = new HashSet<>();
     private final Set<Integer> typedKeys = new HashSet<>();
     private final Point mousePosition = new Point();
+    private int viewportX;
+    private int viewportY;
+    private double viewportScale = 1.0;
     private boolean leftMouseDown;
     private boolean leftMouseClicked;
 
@@ -52,6 +55,20 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
      */
     public Point getMousePosition() {
         return new Point(mousePosition);
+    }
+
+    /**
+     * Updates the viewport transform used to map panel mouse coordinates into
+     * the game's logical coordinate system.
+     *
+     * @param viewportX x offset of the rendered game viewport
+     * @param viewportY y offset of the rendered game viewport
+     * @param viewportScale scale applied to the logical game canvas
+     */
+    public void updateViewport(int viewportX, int viewportY, double viewportScale) {
+        this.viewportX = viewportX;
+        this.viewportY = viewportY;
+        this.viewportScale = Math.max(0.0001, viewportScale);
     }
 
     /**
@@ -103,7 +120,7 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
             leftMouseDown = true;
             leftMouseClicked = true;
         }
-        mousePosition.setLocation(event.getPoint());
+        updateMousePosition(event);
     }
 
     @Override
@@ -111,12 +128,12 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
         if (event.getButton() == MouseEvent.BUTTON1) {
             leftMouseDown = false;
         }
-        mousePosition.setLocation(event.getPoint());
+        updateMousePosition(event);
     }
 
     @Override
     public void mouseEntered(MouseEvent event) {
-        mousePosition.setLocation(event.getPoint());
+        updateMousePosition(event);
     }
 
     @Override
@@ -131,6 +148,14 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
 
     @Override
     public void mouseMoved(MouseEvent event) {
-        mousePosition.setLocation(event.getPoint());
+        updateMousePosition(event);
+    }
+
+    private void updateMousePosition(MouseEvent event) {
+        int logicalX = (int) Math.round((event.getX() - viewportX) / viewportScale);
+        int logicalY = (int) Math.round((event.getY() - viewportY) / viewportScale);
+        logicalX = Math.max(0, Math.min(GameConstants.SCREEN_WIDTH, logicalX));
+        logicalY = Math.max(0, Math.min(GameConstants.SCREEN_HEIGHT, logicalY));
+        mousePosition.setLocation(logicalX, logicalY);
     }
 }
