@@ -89,13 +89,12 @@ src/main/java/bulletbloom/assets   Classpath asset loading
 src/main/resources             Runtime images and game assets
 src/test/java/bulletbloom      Smoke and logic tests
 scripts                        Build, run, test, package, and Javadoc helpers
-enemy, player, ui, weapon      Original C++ source kept for migration reference
-image, sound                   Original asset folders kept for reference
 ```
 
 ## Development Notes
 
 - The Java runtime is intentionally JDK-only; no Gradle, Maven, or external game framework is required.
+- Legacy C++ source and duplicate root-level assets have been removed after the Java migration.
 - `scripts/test.sh` runs deterministic logic checks first, then an offscreen render smoke test.
 - Local Java save data is ignored at `save/bullet-bloom.properties`.
 - Generated outputs stay under `out/` and are ignored by Git.
