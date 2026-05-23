@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -19,10 +20,11 @@ public final class GameState {
     private final BufferedImage emptyHeart;
     private final BufferedImage coinIcon;
     private final Player player;
-    private final Weapon weapon;
+    private final List<Weapon> weapons;
     private final EnemySpawner enemySpawner;
     private final List<Enemy> enemies;
     private final List<Coin> coins;
+    private int currentWeaponIndex;
     private int money;
 
     /**
@@ -37,7 +39,7 @@ public final class GameState {
         this.player = new Player(
                 GameConstants.SCREEN_WIDTH / 2.0,
                 GameConstants.SCREEN_HEIGHT / 2.0);
-        this.weapon = new Pistol();
+        this.weapons = createWeapons();
         this.enemySpawner = new EnemySpawner();
         this.enemies = new ArrayList<>();
         this.coins = new ArrayList<>();
@@ -49,11 +51,12 @@ public final class GameState {
      * @param input current input state
      */
     public void update(InputManager input) {
+        updateWeaponSelection(input);
         player.update(input, screenBounds);
-        weapon.update(player, input, screenBounds);
+        currentWeapon().update(player, input, screenBounds);
         enemySpawner.update(enemies, screenBounds);
         for (Enemy enemy : enemies) {
-            enemy.update(player, weapon.getBullets());
+            enemy.update(player, currentWeapon().getBullets());
         }
         collectDefeatedEnemies();
         updateCoins();
@@ -74,7 +77,7 @@ public final class GameState {
                 GameConstants.SCREEN_WIDTH,
                 GameConstants.SCREEN_HEIGHT);
         player.draw(graphics);
-        weapon.draw(graphics, player);
+        currentWeapon().draw(graphics, player);
         for (Enemy enemy : enemies) {
             enemy.draw(graphics);
         }
@@ -119,6 +122,7 @@ public final class GameState {
         graphics.drawImage(coinIcon, coinX, y, null);
         graphics.setColor(Color.BLACK);
         graphics.drawString("x " + money, coinX + 50, y + 32);
+        graphics.drawString(currentWeapon().getName(), coinX + 160, y + 32);
     }
 
     private void drawDebugText(Graphics2D graphics) {
@@ -133,5 +137,58 @@ public final class GameState {
                 16,
                 64);
         graphics.drawString("Money: " + money + " | Coins: " + coins.size(), 16, 84);
+    }
+
+    private void updateWeaponSelection(InputManager input) {
+        if (input.consumeKeyPress(KeyEvent.VK_1)) {
+            currentWeaponIndex = 0;
+        } else if (input.consumeKeyPress(KeyEvent.VK_2) && weapons.size() > 1) {
+            currentWeaponIndex = 1;
+        } else if (input.consumeKeyPress(KeyEvent.VK_3) && weapons.size() > 2) {
+            currentWeaponIndex = 2;
+        } else if (input.consumeKeyPress(KeyEvent.VK_4) && weapons.size() > 3) {
+            currentWeaponIndex = 3;
+        }
+    }
+
+    private Weapon currentWeapon() {
+        return weapons.get(currentWeaponIndex);
+    }
+
+    private List<Weapon> createWeapons() {
+        List<Weapon> loadedWeapons = new ArrayList<>();
+        loadedWeapons.add(new Pistol());
+        loadedWeapons.add(new GunWeapon(
+                "AK-47",
+                "/image/weapon/weapon_AK-47.png",
+                "/image/weapon/bullet_0.png",
+                20,
+                100,
+                70,
+                true));
+        loadedWeapons.add(new GunWeapon(
+                "Shotgun",
+                "/image/weapon/Shotgun.png",
+                "/image/weapon/Bullet_fire.png",
+                56,
+                50,
+                24,
+                false,
+                -10,
+                -5,
+                -2,
+                0,
+                2,
+                5,
+                10));
+        loadedWeapons.add(new GunWeapon(
+                "AWP",
+                "/image/weapon/AWP.png",
+                "/image/weapon/Bullet_Yellow.png",
+                120,
+                120,
+                300,
+                false));
+        return loadedWeapons;
     }
 }

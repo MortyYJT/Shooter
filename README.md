@@ -4,7 +4,7 @@ This repository is being migrated from the original C++/SplashKit shooter assign
 
 ## Current Stage
 
-Stage 2 keeps the project JDK-only with Java2D/Swing and adds the first playable weapon loop.
+Stage 5 keeps the project JDK-only with Java2D/Swing and now covers the core combat loop: player movement, multiple weapons, slime enemies, coin drops, and HUD rendering.
 
 Implemented:
 
@@ -23,6 +23,7 @@ Implemented:
 - Basic player contact damage.
 - Enemy coin drops, animated coin attraction, collection, and money tracking.
 - Resource-backed heart and coin HUD.
+- Multiple migrated weapons with number-key switching: pistol, AK-47, shotgun, and AWP.
 
 ## Run Locally
 
@@ -57,9 +58,10 @@ java -cp out/classes:out/test-classes shooter.GameSmokeTest
 2. Stage 2: Weapon model, bullets, firing direction, projectile rendering.
 3. Stage 3: Enemy model, slime migration, collision and damage.
 4. Stage 4: Coins, health UI, hit feedback.
-5. Stage 5: Wave spawning, boss migration.
-6. Stage 6: Menu, pause, shop.
-7. Stage 7: Save/load and final debugging pass.
+5. Stage 5: Multi-weapon migration and switching.
+6. Stage 6: Wave spawning, boss migration.
+7. Stage 7: Menu, pause, shop.
+8. Stage 8: Save/load and final debugging pass.
 
 ## Notes
 

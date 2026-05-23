@@ -110,6 +110,16 @@ public final class Pistol implements Weapon {
         return bullets;
     }
 
+    /**
+     * Gets the pistol display name.
+     *
+     * @return weapon name
+     */
+    @Override
+    public String getName() {
+        return "Pistol";
+    }
+
     private void fire(double angle, Player player) {
         fireCooldown = FIRE_INTERVAL;
         fireFrameTimer = FIRE_FRAME_DURATION;

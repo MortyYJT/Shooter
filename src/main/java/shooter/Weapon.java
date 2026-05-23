@@ -31,4 +31,11 @@ public interface Weapon {
      * @return bullet list
      */
     List<Bullet> getBullets();
+
+    /**
+     * Gets the display name for the weapon.
+     *
+     * @return weapon name
+     */
+    String getName();
 }

@@ -14,6 +14,7 @@ import java.util.Set;
  */
 public final class InputManager implements KeyListener, MouseListener, MouseMotionListener {
     private final Set<Integer> pressedKeys = new HashSet<>();
+    private final Set<Integer> typedKeys = new HashSet<>();
     private final Point mousePosition = new Point();
     private boolean leftMouseDown;
     private boolean leftMouseClicked;
@@ -26,6 +27,16 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
      */
     public boolean isKeyDown(int keyCode) {
         return pressedKeys.contains(keyCode);
+    }
+
+    /**
+     * Consumes a key press that occurred since the previous update.
+     *
+     * @param keyCode {@link KeyEvent} virtual key code
+     * @return {@code true} once for each fresh key press
+     */
+    public boolean consumeKeyPress(int keyCode) {
+        return typedKeys.remove(keyCode);
     }
 
     /**
@@ -64,6 +75,9 @@ public final class InputManager implements KeyListener, MouseListener, MouseMoti
 
     @Override
     public void keyPressed(KeyEvent event) {
+        if (!pressedKeys.contains(event.getKeyCode())) {
+            typedKeys.add(event.getKeyCode());
+        }
         pressedKeys.add(event.getKeyCode());
     }
 
