@@ -11,12 +11,24 @@ import java.util.Properties;
  * Persists and loads Java rewrite save data.
  */
 public final class SaveService {
-    private static final Path SAVE_PATH = Path.of("save", "bullet-bloom.properties");
+    private static final Path DEFAULT_SAVE_PATH = Path.of("save", "bullet-bloom.properties");
+
+    private final Path savePath;
 
     /**
      * Creates a save service using the default local save path.
      */
     public SaveService() {
+        this(DEFAULT_SAVE_PATH);
+    }
+
+    /**
+     * Creates a save service using a caller-provided path.
+     *
+     * @param savePath path where save data should be stored
+     */
+    public SaveService(Path savePath) {
+        this.savePath = savePath;
     }
 
     /**
@@ -25,7 +37,7 @@ public final class SaveService {
      * @return {@code true} when save data is available
      */
     public boolean exists() {
-        return Files.exists(SAVE_PATH);
+        return Files.exists(savePath);
     }
 
     /**
@@ -35,13 +47,15 @@ public final class SaveService {
      * @throws IOException if the save file cannot be written
      */
     public void save(SaveData data) throws IOException {
-        Files.createDirectories(SAVE_PATH.getParent());
+        if (savePath.getParent() != null) {
+            Files.createDirectories(savePath.getParent());
+        }
         Properties properties = new Properties();
         properties.setProperty("wave", Integer.toString(data.wave()));
         properties.setProperty("money", Integer.toString(data.money()));
         properties.setProperty("hearts", Integer.toString(data.hearts()));
         properties.setProperty("currentWeaponIndex", Integer.toString(data.currentWeaponIndex()));
-        try (OutputStream output = Files.newOutputStream(SAVE_PATH)) {
+        try (OutputStream output = Files.newOutputStream(savePath)) {
             properties.store(output, "Bullet Bloom save data");
         }
     }
@@ -54,7 +68,7 @@ public final class SaveService {
      */
     public SaveData load() throws IOException {
         Properties properties = new Properties();
-        try (InputStream input = Files.newInputStream(SAVE_PATH)) {
+        try (InputStream input = Files.newInputStream(savePath)) {
             properties.load(input);
         }
         return new SaveData(
