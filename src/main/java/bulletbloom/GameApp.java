@@ -1,4 +1,4 @@
-package shooter;
+package bulletbloom;
 
 import java.awt.EventQueue;
 import javax.swing.JFrame;

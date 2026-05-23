@@ -1,4 +1,4 @@
-package shooter;
+package bulletbloom;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

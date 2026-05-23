@@ -55,7 +55,7 @@ Manual commands:
 javac -d out/classes $(find src/main/java -name '*.java')
 cp -R src/main/resources/* out/classes/
 javac -cp out/classes -d out/test-classes $(find src/test/java -name '*.java')
-java -cp out/classes:out/test-classes shooter.GameSmokeTest
+java -cp out/classes:out/test-classes bulletbloom.GameSmokeTest
 ```
 
 ## Migration Plan

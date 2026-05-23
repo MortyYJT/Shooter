@@ -5,4 +5,4 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 scripts/build.sh
-java -cp out/classes shooter.GameApp
+java -cp out/classes bulletbloom.GameApp

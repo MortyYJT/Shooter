@@ -1,4 +1,4 @@
-package shooter;
+package bulletbloom;
 
 /**
  * Shared constants for the Java port of the shooter game.

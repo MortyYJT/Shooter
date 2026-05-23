@@ -1,4 +1,4 @@
-package shooter;
+package bulletbloom;
 
 /**
  * Horizontal facing direction for sprites that can be mirrored.

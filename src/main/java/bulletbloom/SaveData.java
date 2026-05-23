@@ -1,4 +1,4 @@
-package shooter;
+package bulletbloom;
 
 /**
  * Serializable snapshot of the Java game state.

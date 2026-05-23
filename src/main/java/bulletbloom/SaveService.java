@@ -1,4 +1,4 @@
-package shooter;
+package bulletbloom;
 
 import java.io.IOException;
 import java.io.InputStream;

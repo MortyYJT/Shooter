@@ -1,4 +1,4 @@
-package shooter;
+package bulletbloom;
 
 /**
  * High-level screen mode for the Java game flow.

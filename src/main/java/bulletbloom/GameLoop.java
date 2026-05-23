@@ -1,4 +1,4 @@
-package shooter;
+package bulletbloom;
 
 import javax.swing.Timer;
 

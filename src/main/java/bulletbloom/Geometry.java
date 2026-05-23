@@ -1,4 +1,4 @@
-package shooter;
+package bulletbloom;
 
 import java.awt.Rectangle;
 import java.awt.geom.Line2D;
