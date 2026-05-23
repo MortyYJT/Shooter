@@ -1,7 +1,6 @@
 package shooter;
 
 import java.awt.Rectangle;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -63,19 +62,4 @@ public final class EnemySpawner {
         return new SlimeEnemy(x, y);
     }
 
-    /**
-     * Removes defeated enemies from the active list.
-     *
-     * @param enemies active enemy list
-     */
-    public void removeDefeated(List<Enemy> enemies) {
-        List<Enemy> alive = new ArrayList<>();
-        for (Enemy enemy : enemies) {
-            if (enemy.isAlive()) {
-                alive.add(enemy);
-            }
-        }
-        enemies.clear();
-        enemies.addAll(alive);
-    }
 }

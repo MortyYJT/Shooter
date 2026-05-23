@@ -21,6 +21,8 @@ Implemented:
 - Bullet movement, rotation, and offscreen cleanup.
 - Slime enemy spawning, chasing, health bars, and bullet damage.
 - Basic player contact damage.
+- Enemy coin drops, animated coin attraction, collection, and money tracking.
+- Resource-backed heart and coin HUD.
 
 ## Run Locally
 

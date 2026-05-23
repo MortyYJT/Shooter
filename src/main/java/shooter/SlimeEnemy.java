@@ -156,11 +156,13 @@ public final class SlimeEnemy implements Enemy {
         return new Rectangle((int) Math.round(x), damageY, getWidth(), damageHeight);
     }
 
-    private double getCenterX() {
+    @Override
+    public double getCenterX() {
         return x + getWidth() / 2.0;
     }
 
-    private double getCenterY() {
+    @Override
+    public double getCenterY() {
         return y + getHeight() / 2.0;
     }
 

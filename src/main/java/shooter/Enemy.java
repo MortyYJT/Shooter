@@ -28,4 +28,18 @@ public interface Enemy {
      * @return {@code true} while the enemy should stay in play
      */
     boolean isAlive();
+
+    /**
+     * Gets the x coordinate where drops should appear.
+     *
+     * @return center x coordinate
+     */
+    double getCenterX();
+
+    /**
+     * Gets the y coordinate where drops should appear.
+     *
+     * @return center y coordinate
+     */
+    double getCenterY();
 }
